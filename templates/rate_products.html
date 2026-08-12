@@ -1,0 +1,381 @@
+{% extends "base.html" %}
+
+{% block title %}İçeceğini Puanla - REEV COFFEE Sadakat{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h4><i class="fas fa-star"></i> İçeceğini Puanla</h4>
+                    <p class="mb-0">Aldığınız ürünleri puanlayarak deneyiminizi paylaşın!</p>
+                </div>
+                <div class="card-body">
+                    
+                    {% if products %}
+                        <div class="row">
+                            {% for product in products %}
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100 product-rating-card">
+                                    {% if product.image %}
+                                    <img src="{{ url_for('static', filename='uploads/' + product.image) }}" 
+                                         class="card-img-top" alt="{{ product.name }}" 
+                                         style="height: 200px; object-fit: cover;">
+                                    {% else %}
+                                    <div class="card-img-top d-flex align-items-center justify-content-center bg-light" 
+                                         style="height: 200px;">
+                                        <i class="fas fa-coffee fa-3x text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ product.name }}</h5>
+                                        <p class="card-text">{{ product.description }}</p>
+                                        
+                                        <div class="mb-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar"></i> 
+                                                {{ product.purchase_date.strftime('%d.%m.%Y %H:%M') }}
+                                            </small>
+                                        </div>
+                                        
+                                        <div class="mb-2">
+                                            <small class="text-muted">
+                                                <i class="fas fa-coins"></i> 
+                                                {{ product.points_used }} puan kullanıldı
+                                            </small>
+                                        </div>
+                                        
+                                    </div>
+                                    
+                                    <div class="card-footer">
+                                        {% if product.current_rating %}
+                                            <!-- Zaten Puanlanmış -->
+                                            <div class="alert alert-success py-2 mb-0">
+                                                <small><strong>✅ Puanlandı:</strong> {{ product.current_rating }}/5 ⭐</small>
+                                                {% if product.current_comment and product.current_comment.replace('[redemption_id:' + product.redemption_id|string + ']', '').strip() %}
+                                                <br><small><strong>Yorumunuz:</strong> {{ product.current_comment.replace('[redemption_id:' + product.redemption_id|string + ']', '').strip() }}</small>
+                                                {% endif %}
+                                                <br><small class="text-muted">{{ product.rating_date.strftime('%d.%m.%Y %H:%M') }}</small>
+                                            </div>
+                                        {% else %}
+                                            <!-- Puanlama Formu -->
+                                            <form method="POST" action="/submit-rating" style="margin: 0;">
+                                                <input type="hidden" name="product_id" value="{{ product.product_id }}">
+                                                <input type="hidden" name="redemption_id" value="{{ product.redemption_id }}">
+                                                
+                                                <!-- Basit Rating -->
+                                                <div class="mb-2">
+                                                    <small><strong>Puan verin:</strong></small><br>
+                                                    {% for i in range(1, 6) %}
+                                                    <input type="radio" name="rating_{{ product.product_id }}_{{ product.redemption_id }}" value="{{ i }}" id="simple_{{ product.product_id }}_{{ product.redemption_id }}_{{ i }}" required>
+                                                    <label for="simple_{{ product.product_id }}_{{ product.redemption_id }}_{{ i }}">{{ i }}⭐</label>
+                                                    {% endfor %}
+                                                </div>
+                                                
+                                                <!-- Basit Yorum -->
+                                                <div class="mb-2">
+                                                    <textarea name="comment" placeholder="Yorum (isteğe bağlı)" rows="2" style="width: 100%; font-size: 12px;"></textarea>
+                                                </div>
+                                                
+                                                <!-- Submit Butonu -->
+                                                <input type="submit" value="Puanla" class="btn btn-warning btn-sm w-100">
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-coffee fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted">Henüz hiç ürün almamışsınız</h5>
+                            <p class="text-muted">Puanlarınızı kullanarak ürün aldıktan sonra buradan puanlayabilirsiniz.</p>
+                            <a href="{{ url_for('redeem_points') }}" class="btn btn-primary">
+                                <i class="fas fa-gift"></i> Ürün Al
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.product-rating-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid rgba(0,0,0,0.125);
+}
+
+.product-rating-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.rating-input {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 5px;
+}
+
+.rating-input input[type="radio"] {
+    display: none;
+}
+
+.rating-input .star-label {
+    cursor: pointer;
+    font-size: 2rem;
+    color: #ddd;
+    transition: color 0.2s ease;
+}
+
+.rating-input input[type="radio"]:checked ~ .star-label {
+    color: #ffc107;
+}
+
+.rating-display .fa-star {
+    font-size: 1.1rem;
+}
+
+.rating-text {
+    text-align: center;
+}
+
+/* Modal z-index ve pointer-events düzeltmesi */
+.modal {
+    z-index: 1055 !important;
+    background-color: rgba(0,0,0,0.5) !important;
+    pointer-events: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.modal-backdrop {
+    display: none !important;
+}
+
+.modal-dialog {
+    z-index: 1056 !important;
+    position: relative;
+}
+
+.modal-content {
+    z-index: 1057 !important;
+    position: relative;
+}
+
+/* Tüm modal içi elementlerin tıklanabilir olması */
+.modal-body *, .modal-footer *, .modal-header * {
+    pointer-events: auto !important;
+    position: relative;
+    z-index: 1058 !important;
+}
+
+/* Özel olarak form elementleri */
+.modal input, .modal textarea, .modal button, .modal label, .modal .btn {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    z-index: 1059 !important;
+    position: relative;
+}
+
+/* Star rating özel düzeltme */
+.modal .star-label {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    z-index: 1060 !important;
+    position: relative;
+}
+
+/* Genel buton düzeltmesi */
+button, .btn, input[type="submit"], input[type="button"] {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* Form elementlerinin tıklanabilir olması için */
+input, textarea, select, label {
+    pointer-events: auto !important;
+}
+
+/* Card'ların tıklanabilir olması için */
+.card, .card-body, .card-footer {
+    pointer-events: auto !important;
+}
+
+/* Mobil uyumluluk */
+@media (max-width: 576px) {
+    .modal-dialog {
+        max-width: 95% !important;
+        margin: 10px !important;
+    }
+    
+    .modal-content {
+        max-height: 85vh !important;
+    }
+    
+    .modal-body {
+        padding: 15px !important;
+    }
+    
+    .rating-input .star-label {
+        font-size: 1.5rem !important;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Rating system JavaScript loaded');
+    
+    // Modal açıldığında elementleri düzelt
+    document.addEventListener('shown.bs.modal', function(e) {
+        console.log('Modal açıldı, elementleri düzeltiliyor...');
+        
+        const modal = e.target;
+        
+        // Modal dışına tıklandığında kapat
+        modal.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                const modalInstance = bootstrap.Modal.getInstance(modal);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+            }
+        });
+        
+        // Modal içindeki tüm elementleri tıklanabilir yap
+        const allElements = modal.querySelectorAll('*');
+        allElements.forEach(function(element) {
+            element.style.pointerEvents = 'auto';
+            element.style.position = 'relative';
+            element.style.zIndex = '1060';
+        });
+        
+        // Özellikle form elementleri
+        const formElements = modal.querySelectorAll('input, textarea, button, label, .btn, .star-label');
+        formElements.forEach(function(element) {
+            element.style.pointerEvents = 'auto';
+            element.style.cursor = 'pointer';
+            element.style.zIndex = '1061';
+            element.style.position = 'relative';
+        });
+        
+        console.log('Modal elementleri düzeltildi');
+    });
+    
+    // Basit star rating sistemi
+    document.querySelectorAll('.rating-input').forEach(function(ratingDiv) {
+        const stars = ratingDiv.querySelectorAll('.star-label');
+        const ratingText = ratingDiv.parentElement.querySelector('.rating-text small');
+        const ratingTexts = ['', 'Çok Kötü', 'Kötü', 'Orta', 'İyi', 'Mükemmel'];
+        
+        stars.forEach(function(star, index) {
+            // Click event
+            star.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const rating = index + 1;
+                console.log(`Star clicked: ${rating}`);
+                
+                // Radio button'ı seç
+                const radioInput = ratingDiv.querySelector(`input[value="${rating}"]`);
+                if (radioInput) {
+                    radioInput.checked = true;
+                    console.log('Radio button selected');
+                }
+                
+                // Text güncelle
+                if (ratingText) {
+                    ratingText.textContent = ratingTexts[rating];
+                    ratingText.className = 'text-warning';
+                }
+                
+                // Yıldızları renklendir
+                stars.forEach(function(s, i) {
+                    if (i < rating) {
+                        s.style.color = '#ffc107';
+                    } else {
+                        s.style.color = '#ddd';
+                    }
+                });
+            });
+            
+            // Mousedown event (alternatif)
+            star.addEventListener('mousedown', function(e) {
+                console.log('Star mousedown');
+                e.preventDefault();
+                star.click();
+            });
+        });
+    });
+});
+
+// Modal kapatma fonksiyonu
+function closeModal(element) {
+    console.log('Modal kapatılıyor...');
+    const modal = element.closest('.modal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.classList.remove('modal-open');
+        const backdrop = document.querySelector('.modal-backdrop');
+        if (backdrop) {
+            backdrop.remove();
+        }
+    }
+}
+
+// Manuel form gönderimi fonksiyonu
+function submitRatingForm(button) {
+    console.log('submitRatingForm çağrıldı');
+    
+    try {
+        // Form'u bul
+        const form = button.closest('form');
+        if (!form) {
+            alert('Form bulunamadı!');
+            return;
+        }
+        
+        console.log('Form bulundu:', form);
+        
+        // Form verilerini kontrol et
+        const formData = new FormData(form);
+        console.log('Form verileri:');
+        for (let [key, value] of formData.entries()) {
+            console.log(key + ': ' + value);
+        }
+        
+        // Rating seçilmiş mi kontrol et
+        let ratingSelected = false;
+        const radioButtons = form.querySelectorAll('input[type="radio"]');
+        radioButtons.forEach(function(radio) {
+            if (radio.checked) {
+                ratingSelected = true;
+                console.log('Seçili rating:', radio.value);
+            }
+        });
+        
+        if (!ratingSelected) {
+            alert('Lütfen bir puan seçin (1-5 yıldız)!');
+            return;
+        }
+        
+        console.log('Form gönderiliyor...');
+        
+        // Form'u gönder
+        form.submit();
+        
+    } catch (error) {
+        console.error('Form gönderimi hatası:', error);
+        alert('Form gönderilirken hata oluştu: ' + error.message);
+    }
+}
+</script>
+{% endblock %}

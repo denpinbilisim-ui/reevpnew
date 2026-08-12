@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+
+{% block title %}Anket Yönetimi - Admin Panel{% endblock %}
+
+<!-- Cache busting for JavaScript updates -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h4><i class="fas fa-poll"></i> Anket Yönetimi</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Başlık</th>
+                                    <th>Açıklama</th>
+                                    <th>Tarih Aralığı</th>
+                                    <th>Ödül Puanı</th>
+                                    <th>Durum</th>
+                                    <th>Yanıt Sayısı</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for survey in surveys %}
+                                <tr>
+                                    <td>{{ survey.id }}</td>
+                                    <td>{{ survey.title }}</td>
+                                    <td>{{ survey.description[:50] }}{% if survey.description|length > 50 %}...{% endif %}</td>
+                                    <td>
+                                        <small>
+                                            {{ survey.start_date.strftime('%d.%m.%Y') }}<br>
+                                            {{ survey.end_date.strftime('%d.%m.%Y') }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        {% if survey.reward_points > 0 %}
+                                            <span class="badge bg-success">{{ survey.reward_points }} puan</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Puansız</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if survey.is_valid() %}
+                                            <span class="badge bg-success">Aktif</span>
+                                        {% elif survey.is_active %}
+                                            <span class="badge bg-warning">Beklemede</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Pasif</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ survey.responses|length }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" onclick="viewSurveyDetails({{ survey.id }})" title="Detayları Görüntüle">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-outline-info" onclick="editSurvey({{ survey.id }})" title="Düzenle">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-outline-warning" onclick="toggleSurvey({{ survey.id }})" title="{% if survey.is_active %}Pasif Yap{% else %}Aktif Yap{% endif %}">
+                                                <i class="fas fa-toggle-{% if survey.is_active %}on{% else %}off{% endif %}"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger" onclick="deleteSurvey({{ survey.id }})" title="Sil">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {% if not surveys %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-poll fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">Henüz anket oluşturulmamış</h5>
+                        <p class="text-muted">Admin panelinden yeni anket oluşturabilirsiniz.</p>
+                        <a href="{{ url_for('admin') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Anket Oluştur
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Survey Details Modal -->
+<div class="modal fade" id="surveyDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Anket Detayları</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="surveyDetailsContent">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Survey Edit Modal -->
+<div class="modal fade" id="surveyEditModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Anket Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editSurveyForm">
+                <div class="modal-body">
+                    <input type="hidden" id="editSurveyId" name="survey_id">
+                    
+                    <div class="mb-3">
+                        <label for="editTitle" class="form-label">Anket Başlığı</label>
+                        <input type="text" class="form-control" id="editTitle" name="title" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editDescription" class="form-label">Açıklama</label>
+                        <textarea class="form-control" id="editDescription" name="description" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editStartDate" class="form-label">Başlangıç Tarihi</label>
+                                <input type="date" class="form-control" id="editStartDate" name="start_date" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editEndDate" class="form-label">Bitiş Tarihi</label>
+                                <input type="date" class="form-control" id="editEndDate" name="end_date" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="editRewardPoints" class="form-label">Ödül Puanı</label>
+                        <input type="number" class="form-control" id="editRewardPoints" name="reward_points" min="0" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="editIsActive" name="is_active">
+                            <label class="form-check-label" for="editIsActive">
+                                Anket aktif
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function viewSurveyDetails(surveyId) {
+    // Load survey details via AJAX
+    fetch(`/admin/survey/${surveyId}/details`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('surveyDetailsContent').innerHTML = `
+                    <h6>Anket Bilgileri</h6>
+                    <p><strong>Başlık:</strong> ${data.survey.title}</p>
+                    <p><strong>Açıklama:</strong> ${data.survey.description}</p>
+                    <p><strong>Ödül Puanı:</strong> ${data.survey.reward_points} puan</p>
+                    <p><strong>Tarih:</strong> ${data.survey.start_date} - ${data.survey.end_date}</p>
+                    
+                    <h6 class="mt-4">Sorular</h6>
+                    <ol>
+                        ${data.questions.map(q => `<li>${q.question_text} (${q.question_type})</li>`).join('')}
+                    </ol>
+                    
+                    <h6 class="mt-4">Yanıtlar (${data.responses.length})</h6>
+                    ${data.responses.length > 0 ? `
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Kullanıcı</th>
+                                        <th>Tarih</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.responses.map(r => `
+                                        <tr>
+                                            <td>${r.user_name}</td>
+                                            <td>${new Date(r.completed_at).toLocaleDateString('tr-TR')}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    ` : '<p class="text-muted">Henüz yanıt yok.</p>'}
+                `;
+                new bootstrap.Modal(document.getElementById('surveyDetailsModal')).show();
+            }
+        })
+        .catch(error => {
+            alert('Anket detayları yüklenirken hata oluştu.');
+        });
+}
+
+function toggleSurvey(surveyId) {
+    if (confirm('Anket durumunu değiştirmek istediğinizden emin misiniz?')) {
+        fetch(`/admin/survey/${surveyId}/toggle`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Sunucudan JSON yanıt alınamadı');
+            }
+            
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Hata: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Toggle error:', error);
+            alert('İşlem sırasında hata oluştu: ' + error.message);
+        });
+    }
+}
+
+function editSurvey(surveyId) {
+    // Load survey data for editing
+    fetch(`/admin/survey/${surveyId}/details`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const survey = data.survey;
+                
+                // Fill form fields
+                document.getElementById('editSurveyId').value = survey.id;
+                document.getElementById('editTitle').value = survey.title;
+                document.getElementById('editDescription').value = survey.description;
+                document.getElementById('editStartDate').value = survey.start_date.split(' ')[0];
+                document.getElementById('editEndDate').value = survey.end_date.split(' ')[0];
+                document.getElementById('editRewardPoints').value = survey.reward_points;
+                document.getElementById('editIsActive').checked = survey.is_active;
+                
+                // Show modal
+                new bootstrap.Modal(document.getElementById('surveyEditModal')).show();
+            }
+        })
+        .catch(error => {
+            alert('Anket bilgileri yüklenirken hata oluştu.');
+        });
+}
+
+function deleteSurvey(surveyId) {
+    console.log('deleteSurvey called with ID:', surveyId);
+    console.log('URL will be:', `/admin/survey/${surveyId}/delete`);
+    
+    if (confirm('Bu anketi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) {
+        fetch(`/admin/survey/${surveyId}/delete?t=${Date.now()}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            console.log('Response headers:', response.headers);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('Sunucudan JSON yanıt alınamadı');
+            }
+            
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            if (data.success) {
+                alert('Anket başarıyla silindi.');
+                location.reload();
+            } else {
+                alert('Hata: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Delete error:', error);
+            alert('Silme işlemi sırasında hata oluştu: ' + error.message);
+        });
+    }
+}
+
+// Edit form submission
+document.getElementById('editSurveyForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const surveyId = formData.get('survey_id');
+    
+    const data = {
+        title: formData.get('title'),
+        description: formData.get('description'),
+        start_date: formData.get('start_date'),
+        end_date: formData.get('end_date'),
+        reward_points: parseInt(formData.get('reward_points')),
+        is_active: formData.has('is_active')
+    };
+    
+    fetch(`/admin/survey/${surveyId}/edit`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Sunucudan JSON yanıt alınamadı');
+        }
+        
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            alert('Anket başarıyla güncellendi.');
+            bootstrap.Modal.getInstance(document.getElementById('surveyEditModal')).hide();
+            location.reload();
+        } else {
+            alert('Hata: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Edit error:', error);
+        alert('Güncelleme sırasında hata oluştu: ' + error.message);
+    });
+});
+</script>
+{% endblock %}

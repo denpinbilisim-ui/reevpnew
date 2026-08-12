@@ -1,0 +1,472 @@
+{% extends "base.html" %}
+
+{% block title %}Mobil Uygulamayı İndir - REEV POINTS{% endblock %}
+
+{% block content %}
+<style>
+    .download-container {
+        min-height: 80vh;
+        padding: 40px 20px;
+    }
+    .download-card {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 20px;
+        padding: 50px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        text-align: center;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .download-icon {
+        font-size: 100px;
+        color: #28a745;
+        margin-bottom: 30px;
+        animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    .platform-section {
+        margin: 40px 0;
+        padding: 30px;
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.5);
+    }
+    .platform-icon {
+        font-size: 60px;
+        margin-bottom: 20px;
+    }
+    .android-section {
+        border: 2px solid #3ddc84;
+    }
+    .android-section .platform-icon {
+        color: #3ddc84;
+    }
+    .ios-section {
+        border: 2px solid #007aff;
+    }
+    .ios-section .platform-icon {
+        color: #007aff;
+    }
+    .download-btn {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 15px 40px;
+        font-size: 20px;
+        border-radius: 50px;
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 20px;
+        transition: all 0.3s;
+        border: none;
+        box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+    }
+    .download-btn:hover {
+        background: linear-gradient(135deg, #218838 0%, #1aa179 100%);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(40, 167, 69, 0.4);
+        color: white;
+    }
+    .ios-btn {
+        background: linear-gradient(135deg, #007aff 0%, #0051d5 100%);
+        box-shadow: 0 8px 20px rgba(0, 122, 255, 0.3);
+    }
+    .ios-btn:hover {
+        background: linear-gradient(135deg, #0051d5 0%, #003d99 100%);
+        box-shadow: 0 12px 30px rgba(0, 122, 255, 0.4);
+    }
+    .instruction-list {
+        text-align: left;
+        margin-top: 20px;
+        padding: 0 20px;
+    }
+    .instruction-step {
+        padding: 10px 0;
+        font-size: 16px;
+        color: #333;
+        display: flex;
+        align-items: start;
+    }
+    .step-number {
+        background: #28a745;
+        color: white;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+    .ios-section .step-number {
+        background: #007aff;
+    }
+    .feature-list {
+        text-align: left;
+        margin-top: 30px;
+        padding: 0 20px;
+    }
+    .feature-item {
+        padding: 10px 0;
+        font-size: 16px;
+        color: #555;
+    }
+    .feature-item i {
+        color: #28a745;
+        margin-right: 10px;
+        width: 20px;
+    }
+</style>
+
+<div class="download-container">
+    <div class="download-card">
+        <div class="download-icon">
+            <i class="fas fa-mobile-alt"></i>
+        </div>
+        
+        <h1 class="mb-3">REEV Points</h1>
+        <h3 class="text-muted mb-4">Mobil Uygulama</h3>
+        
+        <p class="lead">Cihazınıza uygun yöntemi seçerek uygulamamızı kullanmaya başlayın!</p>
+        
+        <!-- Özellikler Listesi -->
+        <div class="feature-list">
+            <div class="feature-item">
+                <i class="fas fa-qrcode"></i>
+                <strong>Hızlı QR Kod Oluşturma</strong>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-gift"></i>
+                <strong>Kolay Puan Kullanımı</strong>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-tags"></i>
+                <strong>Kampanyaları Takip Edin</strong>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-star"></i>
+                <strong>Ürünleri Puanlayın</strong>
+            </div>
+            <div class="feature-item">
+                <i class="fas fa-bell"></i>
+                <strong>Anlık Bildirimler</strong>
+            </div>
+        </div>
+
+        <hr class="my-5">
+
+        <!-- Android Bölümü -->
+        <div class="platform-section android-section">
+            <div class="platform-icon">
+                <i class="fab fa-android"></i>
+            </div>
+            <h3>Android Kullanıcıları</h3>
+            <p class="text-muted">APK dosyasını indirerek uygulamayı yükleyin</p>
+            
+            <a href="{{ url_for('download_apk') }}" class="download-btn">
+                <i class="fas fa-download"></i> Android APK İndir
+            </a>
+            
+            <div class="mt-3">
+                <small class="text-muted">
+                    <i class="fas fa-info-circle"></i> Dosya boyutu: ~66 MB
+                </small>
+            </div>
+            
+            <div class="instruction-list">
+                <div class="instruction-step">
+                    <div class="step-number">1</div>
+                    <div>APK dosyasını indirin</div>
+                </div>
+                <div class="instruction-step">
+                    <div class="step-number">2</div>
+                    <div>Ayarlar > Güvenlik > Bilinmeyen Kaynaklara İzin Ver</div>
+                </div>
+                <div class="instruction-step">
+                    <div class="step-number">3</div>
+                    <div>İndirilen APK dosyasını açın ve yükleyin</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- iOS Bölümü -->
+        <div class="platform-section ios-section">
+            <div class="platform-icon">
+                <i class="fab fa-apple"></i>
+            </div>
+            <h3>iOS Kullanıcıları</h3>
+            <p class="text-muted">Web uygulamasını ana ekranınıza ekleyin (PWA)</p>
+            
+            <button id="ios-install-btn" class="download-btn ios-btn" onclick="showIOSInstructions()">
+                <i class="fas fa-plus-circle"></i> Ana Ekrana Ekle
+            </button>
+            
+            <div class="instruction-list mt-4">
+                <div class="instruction-step">
+                    <div class="step-number">1</div>
+                    <div><strong>Safari</strong> tarayıcısında bu siteyi açın</div>
+                </div>
+                <div class="instruction-step">
+                    <div class="step-number">2</div>
+                    <div>Alttaki <strong>Paylaş</strong> butonuna tıklayın <i class="fas fa-share" style="color: #007aff;"></i></div>
+                </div>
+                <div class="instruction-step">
+                    <div class="step-number">3</div>
+                    <div><strong>"Ana Ekrana Ekle"</strong> seçeneğini seçin</div>
+                </div>
+                <div class="instruction-step">
+                    <div class="step-number">4</div>
+                    <div>Sağ üstten <strong>"Ekle"</strong> butonuna tıklayın</div>
+                </div>
+                <div class="instruction-step">
+                    <div class="step-number">5</div>
+                    <div>Ana ekranda uygulama simgesi görünecek</div>
+                </div>
+            </div>
+            
+            <div class="alert alert-info mt-4" style="text-align: left;">
+                <i class="fas fa-info-circle"></i> 
+                <strong>Not:</strong> iOS'ta PWA (Progressive Web App) olarak çalışır. 
+                Uygulama gibi tam ekran deneyim sunar ve offline çalışabilir.
+            </div>
+        </div>
+        
+        <div class="mt-5">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary btn-lg">
+                <i class="fas fa-arrow-left"></i> Ana Sayfaya Dön
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// Platform ve tarayıcı tespiti
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone);
+
+// PWA install prompt için
+let deferredPrompt;
+
+// Sayfa yüklendiğinde platform tespiti yap
+window.addEventListener('load', () => {
+    detectPlatformAndUpdateUI();
+    
+    // Debug: PWA kurulum durumunu kontrol et
+    console.log('=== PWA Debug Info ===');
+    console.log('Is HTTPS:', window.location.protocol === 'https:' || window.location.hostname === 'localhost');
+    console.log('Service Worker support:', 'serviceWorker' in navigator);
+    console.log('Is iOS:', isIOS);
+    console.log('Is Safari:', isSafari);
+    console.log('Is Chrome:', isChrome);
+    console.log('Is Standalone:', isInStandaloneMode);
+    console.log('Deferred Prompt:', deferredPrompt);
+    console.log('=====================');
+});
+
+// Chrome/Edge PWA install prompt
+window.addEventListener('beforeinstallprompt', (e) => {
+    console.log('✅ beforeinstallprompt event fired');
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // Chrome kullanıcıları için butonu güncelle
+    const iosBtn = document.getElementById('ios-install-btn');
+    if (iosBtn && !isIOS) {
+        iosBtn.innerHTML = '<i class="fas fa-plus-circle"></i> Ana Ekrana Ekle';
+        iosBtn.onclick = installPWA;
+        iosBtn.style.display = 'inline-block';
+        console.log('✅ Install button updated for Chrome');
+    }
+});
+
+function detectPlatformAndUpdateUI() {
+    const androidSection = document.querySelector('.android-section');
+    const iosSection = document.querySelector('.ios-section');
+    const iosBtn = document.getElementById('ios-install-btn');
+    
+    // Zaten yüklü mü kontrol et
+    if (isInStandaloneMode) {
+        if (iosBtn) {
+            iosBtn.innerHTML = '<i class="fas fa-check-circle"></i> Zaten Yüklü';
+            iosBtn.disabled = true;
+            iosBtn.style.opacity = '0.6';
+        }
+        return;
+    }
+    
+    // iOS Safari
+    if (isIOS && isSafari) {
+        // iOS için özel mesaj göster
+        if (iosSection) {
+            iosSection.style.order = '-1'; // iOS bölümünü üste taşı
+        }
+        if (androidSection) {
+            androidSection.style.opacity = '0.7'; // Android bölümünü soluklaştır
+        }
+    }
+    // Chrome/Edge (Android veya Desktop)
+    else if (isChrome || deferredPrompt) {
+        if (androidSection) {
+            androidSection.style.order = '-1'; // Android bölümünü üste taşı
+        }
+        if (iosSection) {
+            iosSection.style.opacity = '0.7'; // iOS bölümünü soluklaştır
+        }
+    }
+}
+
+// iOS için talimat göster
+function showIOSInstructions() {
+    if (isInStandaloneMode) {
+        showNotification('✅ Uygulama zaten ana ekranınıza eklenmiş!', 'success');
+        return;
+    }
+    
+    if (isIOS && isSafari) {
+        showIOSModal();
+    } else if (isIOS && !isSafari) {
+        showNotification('⚠️ Lütfen Safari tarayıcısını kullanın. Safari\'de bu sayfayı açıp tekrar deneyin.', 'warning');
+    } else if (deferredPrompt) {
+        installPWA();
+    } else {
+        showNotification('ℹ️ Bu özellik mobil cihazlarda çalışır.', 'info');
+    }
+}
+
+// Chrome/Edge için otomatik PWA kurulumu
+async function installPWA() {
+    console.log('installPWA called, deferredPrompt:', deferredPrompt);
+    
+    if (!deferredPrompt) {
+        console.log('❌ No deferredPrompt available');
+        showNotification('ℹ️ Kurulum hazır değil. Lütfen sayfayı yenileyin veya Chrome/Edge kullanın.', 'info');
+        return;
+    }
+    
+    try {
+        console.log('Showing install prompt...');
+        await deferredPrompt.prompt();
+        
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log('User choice outcome:', outcome);
+        
+        if (outcome === 'accepted') {
+            showNotification('✅ Uygulama başarıyla ana ekrana eklendi!', 'success');
+            console.log('✅ PWA installed successfully');
+        } else {
+            showNotification('ℹ️ Kurulum iptal edildi.', 'info');
+            console.log('ℹ️ User dismissed the install prompt');
+        }
+        
+        deferredPrompt = null;
+    } catch (error) {
+        console.error('❌ PWA install error:', error);
+        showNotification('❌ Kurulum sırasında bir hata oluştu: ' + error.message, 'error');
+    }
+}
+
+// iOS için modal göster
+function showIOSModal() {
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.8);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    `;
+    
+    modal.innerHTML = `
+        <div style="background: white; border-radius: 20px; padding: 30px; max-width: 400px; text-align: center;">
+            <h3 style="color: #007aff; margin-bottom: 20px;">
+                <i class="fab fa-apple"></i> Ana Ekrana Ekle
+            </h3>
+            <div style="text-align: left; margin: 20px 0;">
+                <p style="margin: 15px 0; font-size: 16px;">
+                    <span style="display: inline-block; width: 30px; height: 30px; background: #007aff; color: white; border-radius: 50%; text-align: center; line-height: 30px; margin-right: 10px;">1</span>
+                    Alttaki <strong>Paylaş</strong> butonuna tıklayın
+                </p>
+                <p style="text-align: center; font-size: 40px; margin: 10px 0;">
+                    <i class="fas fa-share" style="color: #007aff;"></i>
+                </p>
+                <p style="margin: 15px 0; font-size: 16px;">
+                    <span style="display: inline-block; width: 30px; height: 30px; background: #007aff; color: white; border-radius: 50%; text-align: center; line-height: 30px; margin-right: 10px;">2</span>
+                    <strong>"Ana Ekrana Ekle"</strong> seçeneğini seçin
+                </p>
+                <p style="margin: 15px 0; font-size: 16px;">
+                    <span style="display: inline-block; width: 30px; height: 30px; background: #007aff; color: white; border-radius: 50%; text-align: center; line-height: 30px; margin-right: 10px;">3</span>
+                    Sağ üstten <strong>"Ekle"</strong> butonuna tıklayın
+                </p>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" 
+                    style="background: #007aff; color: white; border: none; padding: 12px 30px; border-radius: 25px; font-size: 16px; cursor: pointer; margin-top: 20px;">
+                Anladım
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+    };
+}
+
+// Bildirim göster
+function showNotification(message, type = 'info') {
+    const colors = {
+        success: '#28a745',
+        error: '#dc3545',
+        warning: '#ffc107',
+        info: '#17a2b8'
+    };
+    
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${colors[type]};
+        color: white;
+        padding: 15px 25px;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        z-index: 10000;
+        max-width: 300px;
+        animation: slideIn 0.3s ease;
+    `;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 4000);
+}
+
+// Animasyonlar
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(400px); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(400px); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

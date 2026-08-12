@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Anketler - REEV COFFEE Sadakat{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-poll"></i> Anket Yap Puan Kap</h4>
+                    <p class="mb-0">Anketleri tamamlayarak puan kazanın!</p>
+                </div>
+                <div class="card-body">
+                    {% if surveys %}
+                        <div class="row">
+                            {% for survey in surveys %}
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100 survey-card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ survey.title }}</h5>
+                                        <p class="card-text">{{ survey.description }}</p>
+                                        
+                                        <div class="mb-3">
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar"></i> 
+                                                {{ survey.start_date.strftime('%d.%m.%Y') }} - {{ survey.end_date.strftime('%d.%m.%Y') }}
+                                            </small>
+                                        </div>
+                                        
+                                        {% if survey.reward_points > 0 %}
+                                        <div class="mb-3">
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-coins"></i> {{ survey.reward_points }} Puan
+                                            </span>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <div class="mb-3">
+                                            <small class="text-info">
+                                                <i class="fas fa-question-circle"></i> 
+                                                {{ survey.questions|length }} soru
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer">
+                                        <a href="{{ url_for('take_survey', survey_id=survey.id) }}" class="btn btn-primary w-100">
+                                            <i class="fas fa-play"></i> Anketi Başlat
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-poll fa-4x text-muted mb-3"></i>
+                            <h5 class="text-muted">Şu anda aktif anket bulunmuyor</h5>
+                            <p class="text-muted">Yeni anketler eklendiğinde burada görünecek.</p>
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-arrow-left"></i> Dashboard'a Dön
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.survey-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid rgba(0,0,0,0.125);
+}
+
+.survey-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.survey-card .card-body {
+    padding: 1.5rem;
+}
+
+.survey-card .card-footer {
+    background-color: rgba(0,0,0,0.03);
+    border-top: 1px solid rgba(0,0,0,0.125);
+}
+</style>
+{% endblock %}

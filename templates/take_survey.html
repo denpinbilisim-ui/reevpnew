@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}{{ survey.title }} - REEV COFFEE Sadakat{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-poll"></i> {{ survey.title }}</h4>
+                    <p class="mb-0">{{ survey.description }}</p>
+                </div>
+                <div class="card-body">
+                    {% if survey.reward_points > 0 %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-gift"></i> 
+                        <strong>Ödül:</strong> Bu anketi tamamladığınızda {{ survey.reward_points }} puan kazanacaksınız!
+                    </div>
+                    {% endif %}
+                    
+                    <form method="POST" action="{{ url_for('submit_survey', survey_id=survey.id) }}" id="surveyForm">
+                        {% for question in questions %}
+                        <div class="mb-4 question-container">
+                            <h6 class="question-title">
+                                {{ loop.index }}. {{ question.question_text }}
+                                {% if question.is_required %}
+                                <span class="text-danger">*</span>
+                                {% endif %}
+                            </h6>
+                            
+                            {% if question.question_type == 'rating' %}
+                                <div class="rating-container">
+                                    {% for i in range(1, 6) %}
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="question_{{ question.id }}" 
+                                               id="q{{ question.id }}_{{ i }}" value="{{ i }}" 
+                                               {% if question.is_required %}required{% endif %}>
+                                        <label class="form-check-label" for="q{{ question.id }}_{{ i }}">
+                                            {{ i }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                    <div class="rating-labels d-flex justify-content-between mt-2">
+                                        <small class="text-muted">Çok Kötü</small>
+                                        <small class="text-muted">Mükemmel</small>
+                                    </div>
+                                </div>
+                            
+                            {% elif question.question_type == 'yes_no' %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" 
+                                           id="q{{ question.id }}_yes" value="true" 
+                                           {% if question.is_required %}required{% endif %}>
+                                    <label class="form-check-label" for="q{{ question.id }}_yes">
+                                        Evet
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" 
+                                           id="q{{ question.id }}_no" value="false" 
+                                           {% if question.is_required %}required{% endif %}>
+                                    <label class="form-check-label" for="q{{ question.id }}_no">
+                                        Hayır
+                                    </label>
+                                </div>
+                            
+                            {% elif question.question_type == 'multiple_choice' %}
+                                {% for option in question.get_options() %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="question_{{ question.id }}" 
+                                           id="q{{ question.id }}_{{ loop.index }}" value="{{ option }}" 
+                                           {% if question.is_required %}required{% endif %}>
+                                    <label class="form-check-label" for="q{{ question.id }}_{{ loop.index }}">
+                                        {{ option }}
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            
+                            {% else %} <!-- text -->
+                                <textarea class="form-control" name="question_{{ question.id }}" 
+                                          rows="3" placeholder="Cevabınızı buraya yazın..."
+                                          {% if question.is_required %}required{% endif %}></textarea>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('surveys') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Geri
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check"></i> Anketi Tamamla
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.question-container {
+    padding: 1.5rem;
+    border: 1px solid rgba(0,0,0,0.125);
+    border-radius: 0.375rem;
+    background-color: rgba(255,255,255,0.8);
+}
+
+.question-title {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.rating-container {
+    text-align: center;
+}
+
+.rating-container .form-check-inline {
+    margin-right: 2rem;
+}
+
+.rating-container .form-check-input:checked {
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+
+.rating-labels {
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+</style>
+
+<script>
+document.getElementById('surveyForm').addEventListener('submit', function(e) {
+    // Form validation
+    const requiredInputs = this.querySelectorAll('[required]');
+    let allFilled = true;
+    
+    requiredInputs.forEach(function(input) {
+        if (input.type === 'radio') {
+            const name = input.name;
+            const radioGroup = document.querySelectorAll(`input[name="${name}"]`);
+            const isChecked = Array.from(radioGroup).some(radio => radio.checked);
+            if (!isChecked) {
+                allFilled = false;
+            }
+        } else if (!input.value.trim()) {
+            allFilled = false;
+        }
+    });
+    
+    if (!allFilled) {
+        e.preventDefault();
+        alert('Lütfen tüm zorunlu soruları cevaplayın.');
+        return false;
+    }
+    
+    // Confirmation
+    if (!confirm('Anketi tamamlamak istediğinizden emin misiniz? Bu işlem geri alınamaz.')) {
+        e.preventDefault();
+        return false;
+    }
+});
+</script>
+{% endblock %}
