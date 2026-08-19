@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import '../utils/app_theme.dart';
 
-/// Kayıt / Giriş ekranları için ortak, profesyonel görünümlü arka plan.
-/// Ana degrade üzerine yumuşak, bulanık dekoratif daireler ekler
-/// (web sürümündeki radial-gradient efektine benzer).
+/// Kayıt / Giriş ekranları için ortak, profesyonel, siyah-beyaz (monokrom)
+/// görünümlü arka plan. Ana degrade üzerine yumuşak, bulanık dekoratif
+/// daireler ekler.
 class AuthBackground extends StatelessWidget {
   final Widget child;
 
@@ -12,26 +11,32 @@ class AuthBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: AppTheme.backgroundDecoration,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF0A0A0A), Color(0xFF2B2B2B)],
+        ),
+      ),
       child: Stack(
         children: [
           // Sol üst dekoratif daire
           Positioned(
             top: -80,
             left: -60,
-            child: _blurCircle(220, AppTheme.primaryColor.withOpacity(0.18)),
+            child: _blurCircle(220, Colors.white.withOpacity(0.10)),
           ),
           // Sağ üst dekoratif daire
           Positioned(
             top: -40,
             right: -70,
-            child: _blurCircle(180, Colors.white.withOpacity(0.12)),
+            child: _blurCircle(180, Colors.white.withOpacity(0.06)),
           ),
           // Sağ alt dekoratif daire
           Positioned(
             bottom: -100,
             right: -80,
-            child: _blurCircle(260, AppTheme.secondaryColor.withOpacity(0.16)),
+            child: _blurCircle(260, Colors.white.withOpacity(0.08)),
           ),
           // İçerik
           child,

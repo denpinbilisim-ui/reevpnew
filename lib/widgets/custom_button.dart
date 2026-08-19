@@ -10,6 +10,7 @@ class CustomButton extends StatelessWidget {
   final Color? textColor;
   final double? width;
   final double? height;
+  final List<Color>? gradientColors;
 
   const CustomButton({
     super.key,
@@ -21,6 +22,7 @@ class CustomButton extends StatelessWidget {
     this.textColor,
     this.width,
     this.height,
+    this.gradientColors,
   });
 
   @override
@@ -28,7 +30,16 @@ class CustomButton extends StatelessWidget {
     return Container(
       width: width ?? double.infinity,
       height: height ?? 50,
-      decoration: AppTheme.buttonGradient,
+      decoration: gradientColors != null
+          ? BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: gradientColors!,
+              ),
+              borderRadius: const BorderRadius.all(Radius.circular(25)),
+            )
+          : AppTheme.buttonGradient,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(

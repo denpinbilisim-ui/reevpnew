@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../utils/app_constants.dart';
-import '../utils/app_theme.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/auth_background.dart';
@@ -135,11 +134,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             gradient: const LinearGradient(
-                              colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                              colors: [Colors.black, Color(0xFF3A3A3A)],
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.primaryColor.withOpacity(0.35),
+                                color: Colors.black.withOpacity(0.45),
                                 blurRadius: 24,
                                 offset: const Offset(0, 10),
                               ),
@@ -167,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                             return const Icon(
                                               Icons.local_cafe,
                                               size: 52,
-                                              color: AppTheme.primaryColor,
+                                              color: Colors.black87,
                                             );
                                           },
                                         );
@@ -182,7 +181,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         return const Icon(
                                           Icons.local_cafe,
                                           size: 52,
-                                          color: AppTheme.primaryColor,
+                                          color: Colors.black87,
                                         );
                                       },
                                     ),
@@ -226,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           Text(
                             'Giriş Yap',
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  color: AppTheme.primaryColor,
+                                  color: Colors.black,
                                   fontWeight: FontWeight.w700,
                                 ),
                           ),
@@ -259,7 +258,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                color: AppTheme.primaryColor.withOpacity(0.7),
+                                color: Colors.black54,
                               ),
                               onPressed: () {
                                 setState(() => _obscurePassword = !_obscurePassword);
@@ -285,7 +284,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: const Text(
                                 'Şifremi Unuttum',
                                 style: TextStyle(
-                                  color: AppTheme.primaryColor,
+                                  color: Colors.black87,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 13,
                                 ),
@@ -300,13 +299,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             icon: Icons.login_rounded,
                             onPressed: _isLoading ? null : _login,
                             isLoading: _isLoading,
+                            gradientColors: const [Colors.black, Color(0xFF3A3A3A)],
                           ),
 
                           const SizedBox(height: 20),
 
                           Row(
                             children: [
-                              Expanded(child: Divider(color: AppTheme.cardBorder)),
+                              Expanded(child: Divider(color: Colors.black12)),
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 12),
                                 child: Text(
@@ -314,7 +314,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   style: TextStyle(color: Colors.black.withOpacity(0.4), fontSize: 12),
                                 ),
                               ),
-                              Expanded(child: Divider(color: AppTheme.cardBorder)),
+                              Expanded(child: Divider(color: Colors.black12)),
                             ],
                           ),
 
@@ -332,7 +332,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     TextSpan(
                                       text: 'Kayıt Olun',
                                       style: TextStyle(
-                                        color: AppTheme.primaryColor,
+                                        color: Colors.black,
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),

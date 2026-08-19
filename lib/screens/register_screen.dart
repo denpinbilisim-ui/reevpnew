@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
-import '../utils/app_theme.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/auth_background.dart';
@@ -151,11 +150,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             gradient: const LinearGradient(
-                              colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
+                              colors: [Colors.black, Color(0xFF3A3A3A)],
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.primaryColor.withOpacity(0.35),
+                                color: Colors.black.withOpacity(0.45),
                                 blurRadius: 20,
                                 offset: const Offset(0, 8),
                               ),
@@ -169,7 +168,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             child: const Icon(
                               Icons.person_add_alt_1_rounded,
                               size: 42,
-                              color: AppTheme.primaryColor,
+                              color: Colors.black87,
                             ),
                           ),
                         ),
@@ -261,7 +260,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                color: AppTheme.primaryColor.withOpacity(0.7),
+                                color: Colors.black54,
                               ),
                               onPressed: () {
                                 setState(() => _obscurePassword = !_obscurePassword);
@@ -284,9 +283,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.5),
+                              color: Colors.black.withOpacity(0.04),
                               borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: AppTheme.cardBorder),
+                              border: Border.all(color: Colors.black12),
                             ),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -296,7 +295,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   onChanged: (value) {
                                     setState(() => _consentGiven = value ?? false);
                                   },
-                                  activeColor: AppTheme.primaryColor,
+                                  activeColor: Colors.black,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(4),
                                   ),
@@ -329,6 +328,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             icon: Icons.person_add_alt_1_rounded,
                             onPressed: _isLoading ? null : _register,
                             isLoading: _isLoading,
+                            gradientColors: const [Colors.black, Color(0xFF3A3A3A)],
                           ),
 
                           const SizedBox(height: 18),
@@ -345,7 +345,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     TextSpan(
                                       text: 'Giriş Yapın',
                                       style: TextStyle(
-                                        color: AppTheme.primaryColor,
+                                        color: Colors.black,
                                         fontWeight: FontWeight.w700,
                                       ),
                                     ),
@@ -383,7 +383,7 @@ class _SectionLabel extends StatelessWidget {
           width: 4,
           height: 16,
           decoration: BoxDecoration(
-            color: AppTheme.primaryColor,
+            color: Colors.black,
             borderRadius: BorderRadius.circular(2),
           ),
         ),
@@ -391,7 +391,7 @@ class _SectionLabel extends StatelessWidget {
         Text(
           text,
           style: const TextStyle(
-            color: AppTheme.primaryColor,
+            color: Colors.black,
             fontWeight: FontWeight.w700,
             fontSize: 13,
             letterSpacing: 0.3,
