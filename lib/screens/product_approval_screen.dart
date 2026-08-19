@@ -266,7 +266,7 @@ class _ProductApprovalScreenState extends State<ProductApprovalScreen> {
                   children: [
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      icon: const Icon(Icons.arrow_back, color: Colors.black87),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -282,7 +282,7 @@ class _ProductApprovalScreenState extends State<ProductApprovalScreen> {
               // Content
               Expanded(
                 child: _isLoading
-                    ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                    ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))
                     : RefreshIndicator(
                         onRefresh: _loadPendingProducts,
                         child: _pendingProducts.isEmpty
@@ -293,13 +293,13 @@ class _ProductApprovalScreenState extends State<ProductApprovalScreen> {
                                     Icon(
                                       Icons.approval,
                                       size: 64,
-                                      color: Colors.white.withOpacity(0.5),
+                                      color: Colors.black.withOpacity(0.3),
                                     ),
                                     const SizedBox(height: 16),
                                     Text(
                                       'Onay bekleyen ürün bulunmuyor',
                                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                        color: Colors.white.withOpacity(0.7),
+                                        color: Colors.black54,
                                       ),
                                     ),
                                   ],

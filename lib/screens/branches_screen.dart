@@ -62,7 +62,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
                   children: [
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      icon: const Icon(Icons.arrow_back, color: Colors.black87),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -78,7 +78,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
               // Content
               Expanded(
                 child: _isLoading
-                    ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                    ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))
                     : RefreshIndicator(
                         onRefresh: _loadBranches,
                         child: _branches.isEmpty
@@ -89,13 +89,13 @@ class _BranchesScreenState extends State<BranchesScreen> {
                                     Icon(
                                       Icons.store,
                                       size: 64,
-                                      color: Colors.white.withOpacity(0.5),
+                                      color: Colors.black.withOpacity(0.3),
                                     ),
                                     const SizedBox(height: 16),
                                     Text(
                                       'Şube bilgisi bulunamadı',
                                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                        color: Colors.white.withOpacity(0.7),
+                                        color: Colors.black.withOpacity(0.5),
                                       ),
                                     ),
                                   ],
@@ -344,7 +344,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
           backgroundColor: Colors.white,
           selectedItemColor: AppTheme.primaryColor,
           unselectedItemColor: Colors.grey,
-          currentIndex: 4, // Şubelerimiz sekmesi aktif
+          currentIndex: 5, // Şubelerimiz sekmesi aktif
           onTap: (index) {
             switch (index) {
               case 0:
@@ -361,6 +361,9 @@ class _BranchesScreenState extends State<BranchesScreen> {
                 Navigator.of(context).pushReplacementNamed('/redeem');
                 break;
               case 4:
+                Navigator.of(context).pushNamed('/wheel');
+                break;
+              case 5:
                 // Zaten şubeler sayfasındayız, hiçbir şey yapma
                 break;
             }
@@ -383,10 +386,14 @@ class _BranchesScreenState extends State<BranchesScreen> {
               label: 'Puan Kullan',
             ),
             BottomNavigationBarItem(
+              icon: Icon(Icons.casino_rounded),
+              label: 'Şans Çarkı',
+            ),
+            BottomNavigationBarItem(
               icon: Icon(Icons.store_rounded),
               label: 'Şubelerimiz',
             ),
-          ],
+         ],
         ),
       ),
     );

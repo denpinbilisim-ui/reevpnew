@@ -368,6 +368,72 @@ class CampaignUsage(db.Model):
         
         return True
 
+# Çark Ödülü Modeli
+class WheelPrize(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)  # Çarkta görünecek isim
+    prize_type = db.Column(db.String(20), nullable=False, default='points')  # 'points' (oyun) veya 'product' (ürün)
+    points_amount = db.Column(db.Integer, nullable=True)  # prize_type='points' ise verilecek puan miktarı
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=True)  # prize_type='product' ise ürün
+    color = db.Column(db.String(7), default='#8B5E3C')  # Çark diliminin rengi (hex)
+    weight = db.Column(db.Integer, default=1)  # Kazanma olasılığı ağırlığı (yüksek = daha olası)
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=get_turkey_time)
+
+    product = db.relationship('Product')
+
+    def to_dict(self):
+        image_url = None
+        if self.prize_type == 'product' and self.product and self.product.image_filename:
+            image_url = url_for('static', filename=f'uploads/{self.product.image_filename}', _external=True)
+        return {
+            'id': self.id,
+            'name': self.name,
+            'prize_type': self.prize_type,
+            'points_amount': self.points_amount,
+            'product_id': self.product_id,
+            'product_name': self.product.name if self.product else None,
+            'image_url': image_url,
+            'color': self.color,
+            'weight': self.weight,
+            'is_active': self.is_active,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
+# Çark Çevirme Kaydı
+class WheelSpin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    prize_id = db.Column(db.Integer, db.ForeignKey('wheel_prize.id'), nullable=False)
+    week_start = db.Column(db.Date, nullable=False)  # O haftanın Pazartesi tarihi
+    points_awarded = db.Column(db.Integer, default=0)
+    product_redemption_id = db.Column(db.Integer, db.ForeignKey('product_redemption.id'), nullable=True)
+    spun_at = db.Column(db.DateTime, default=get_turkey_time)
+
+    user = db.relationship('User', backref='wheel_spins')
+    prize = db.relationship('WheelPrize')
+    redemption = db.relationship('ProductRedemption')
+
+    __table_args__ = (db.UniqueConstraint('user_id', 'week_start', name='unique_user_week_spin'),)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'user_name': self.user.name if self.user else None,
+            'prize_id': self.prize_id,
+            'prize_name': self.prize.name if self.prize else None,
+            'prize_type': self.prize.prize_type if self.prize else None,
+            'points_awarded': self.points_awarded,
+            'week_start': self.week_start.isoformat() if self.week_start else None,
+            'spun_at': self.spun_at.isoformat() if self.spun_at else None
+        }
+
+def get_week_start(dt):
+    """Verilen tarih/datetime'ın ait olduğu haftanın Pazartesi gününü (date) döndürür"""
+    date_only = dt.date() if hasattr(dt, 'date') else dt
+    return date_only - timedelta(days=date_only.weekday())
+
 # Mesaj Modeli
 class Message(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -5949,6 +6015,211 @@ def api_campaigns():
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# Çark (Wheel of Fortune) API Endpoints
+
+def _get_user_from_bearer_token():
+    """Authorization: Bearer <token> header'ından veya user_id parametresinden kullanıcıyı bulur"""
+    auth_header = request.headers.get('Authorization')
+    if auth_header and auth_header.startswith('Bearer '):
+        token = auth_header.split(' ')[1]
+        user = User.query.filter_by(auth_token=token).first()
+        if user:
+            return user
+    # Fallback: user_id from query params or request body
+    user_id = None
+    if request.method == 'GET':
+        user_id = request.args.get('user_id')
+    else:
+        data = request.get_json(silent=True) or {}
+        user_id = data.get('user_id')
+    if user_id:
+        try:
+            user = User.query.get(int(user_id))
+            if user:
+                return user
+        except (ValueError, TypeError):
+            pass
+    return None
+
+@app.route('/api/wheel/status', methods=['GET'])
+def api_wheel_status():
+    try:
+        user = _get_user_from_bearer_token()
+        if not user:
+            return jsonify({'success': False, 'error': 'Geçersiz veya süresi dolmuş token'}), 401
+
+        now = get_turkey_time().replace(tzinfo=None)
+        week_start = get_week_start(now)
+
+        existing_spin = WheelSpin.query.filter_by(user_id=user.id, week_start=week_start).first()
+
+        next_reset = None
+        if existing_spin:
+            next_reset = (week_start + timedelta(days=7)).isoformat()
+
+        prizes = WheelPrize.query.filter_by(is_active=True).order_by(WheelPrize.id).all()
+
+        return jsonify({
+            'success': True,
+            'can_spin': existing_spin is None,
+            'next_spin_at': next_reset,
+            'last_prize': existing_spin.prize.to_dict() if existing_spin and existing_spin.prize else None,
+            'prizes': [p.to_dict() for p in prizes]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/wheel/spin', methods=['POST'])
+def api_wheel_spin():
+    try:
+        user = _get_user_from_bearer_token()
+        if not user:
+            return jsonify({'success': False, 'error': 'Geçersiz veya süresi dolmuş token'}), 401
+
+        now = get_turkey_time().replace(tzinfo=None)
+        week_start = get_week_start(now)
+
+        existing_spin = WheelSpin.query.filter_by(user_id=user.id, week_start=week_start).first()
+        if existing_spin:
+            next_reset = (week_start + timedelta(days=7)).isoformat()
+            return jsonify({
+                'success': False,
+                'error': 'Bu hafta çarkı zaten çevirdiniz. Tekrar çevirmek için Pazartesi gününü bekleyin.',
+                'next_spin_at': next_reset
+            }), 400
+
+        prizes = WheelPrize.query.filter_by(is_active=True).all()
+        if not prizes:
+            return jsonify({'success': False, 'error': 'Şu anda çark için tanımlı ödül bulunmuyor'}), 400
+
+        weights = [max(p.weight or 1, 1) for p in prizes]
+        won_prize = random.choices(prizes, weights=weights, k=1)[0]
+
+        spin = WheelSpin(
+            user_id=user.id,
+            prize_id=won_prize.id,
+            week_start=week_start,
+            spun_at=get_turkey_time()
+        )
+
+        redemption_info = None
+
+        if won_prize.prize_type == 'points' and won_prize.points_amount:
+            user.points += won_prize.points_amount
+            spin.points_awarded = won_prize.points_amount
+
+            transaction = Transaction(
+                user_id=user.id,
+                amount=0.0,
+                transaction_type='wheel_prize',
+                points_earned=won_prize.points_amount,
+                description=f'Çark ödülü: {won_prize.name}',
+                timestamp=get_turkey_time()
+            )
+            db.session.add(transaction)
+
+        elif won_prize.prize_type == 'product' and won_prize.product:
+            confirmation_code = ''.join(random.choices(string.digits, k=6))
+            qr_data = f"REEV_WHEEL_{confirmation_code}_{user.id}_{won_prize.product.id}"
+
+            qr = qrcode.QRCode(version=1, box_size=10, border=5)
+            qr.add_data(qr_data)
+            qr.make(fit=True)
+            qr_img = qr.make_image(fill_color="black", back_color="white")
+            buffer = BytesIO()
+            qr_img.save(buffer, format='PNG')
+            qr_base64 = base64.b64encode(buffer.getvalue()).decode()
+
+            redemption = ProductRedemption(
+                user_id=user.id,
+                product_id=won_prize.product.id,
+                points_used=0,
+                confirmation_code=confirmation_code,
+                qr_code=qr_data,
+                redeemed_at=get_turkey_time()
+            )
+            db.session.add(redemption)
+            db.session.flush()
+
+            spin.product_redemption_id = redemption.id
+
+            redemption_info = {
+                'confirmation_code': confirmation_code,
+                'qr_code_data': qr_data,
+                'qr_code_image': f"data:image/png;base64,{qr_base64}",
+                'product_name': won_prize.product.name
+            }
+
+        db.session.add(spin)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'prize': won_prize.to_dict(),
+            'remaining_points': user.points,
+            'redemption': redemption_info,
+            'next_spin_at': (week_start + timedelta(days=7)).isoformat()
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/wheel/history', methods=['GET'])
+def api_wheel_history():
+    try:
+        user = _get_user_from_bearer_token()
+        if not user:
+            return jsonify({'success': False, 'error': 'Geçersiz veya süresi dolmuş token'}), 401
+
+        spins = WheelSpin.query.filter_by(user_id=user.id).order_by(WheelSpin.spun_at.desc()).all()
+
+        history = []
+        for spin in spins:
+            item = {
+                'id': spin.id,
+                'prize_name': spin.prize.name if spin.prize else None,
+                'prize_type': spin.prize.prize_type if spin.prize else None,
+                'points_awarded': spin.points_awarded,
+                'week_start': spin.week_start.isoformat() if spin.week_start else None,
+                'spun_at': spin.spun_at.isoformat() if spin.spun_at else None,
+                'product_name': None,
+                'qr_code_data': None,
+                'confirmation_code': None,
+                'is_confirmed': False,
+            }
+
+            if spin.prize and spin.prize.prize_type == 'product' and spin.redemption:
+                product = Product.query.get(spin.prize.product_id) if spin.prize.product_id else None
+                item['product_name'] = product.name if product else (spin.prize.name or 'Ürün')
+                item['qr_code_data'] = spin.redemption.qr_code
+                item['confirmation_code'] = spin.redemption.confirmation_code
+                item['is_confirmed'] = spin.redemption.is_confirmed
+
+                # Generate QR base64 image
+                if spin.redemption.qr_code:
+                    try:
+                        qr = qrcode.QRCode(version=1, box_size=8, border=4)
+                        qr.add_data(spin.redemption.qr_code)
+                        qr.make(fit=True)
+                        qr_img = qr.make_image(fill_color="black", back_color="white")
+                        buffer = BytesIO()
+                        qr_img.save(buffer, format='PNG')
+                        qr_base64 = base64.b64encode(buffer.getvalue()).decode()
+                        item['qr_code_image'] = f"data:image/png;base64,{qr_base64}"
+                    except Exception:
+                        item['qr_code_image'] = None
+
+            history.append(item)
+
+        return jsonify({
+            'success': True,
+            'history': history
+        })
+
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/api/resend-verification', methods=['POST'])
 def api_resend_verification():
     try:
@@ -8031,6 +8302,167 @@ def delete_survey(survey_id):
             'message': 'Anket başarıyla silindi.'
         })
         
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# Admin - Çark Yönetimi Sayfası
+@app.route('/admin/wheel')
+@login_required
+def admin_wheel():
+    """Admin çark ödülü yönetimi sayfası"""
+    if not current_user.is_admin:
+        flash('Bu sayfaya erişim yetkiniz yok.', 'error')
+        return redirect(url_for('dashboard'))
+
+    prizes = WheelPrize.query.order_by(WheelPrize.id.desc()).all()
+    products = Product.query.filter_by(is_active=True).order_by(Product.name).all()
+    recent_spins = WheelSpin.query.order_by(WheelSpin.spun_at.desc()).limit(50).all()
+    return render_template('admin_wheel.html', prizes=prizes, products=products, recent_spins=recent_spins)
+
+@app.route('/admin/wheel/create_prize', methods=['POST'])
+@login_required
+def create_wheel_prize():
+    """Yeni çark ödülü oluştur"""
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'error': 'Yetkisiz erişim'}), 403
+
+    try:
+        name = request.form.get('name', '').strip()
+        prize_type = request.form.get('prize_type', 'points')
+        color = request.form.get('color', '#8B5E3C')
+        weight = int(request.form.get('weight', 1))
+        is_active = request.form.get('is_active') == 'true'
+
+        if not name:
+            return jsonify({'success': False, 'error': 'Ödül adı zorunludur!'})
+
+        points_amount = None
+        product_id = None
+
+        if prize_type == 'points':
+            points_amount = int(request.form.get('points_amount', 0))
+            if points_amount <= 0:
+                return jsonify({'success': False, 'error': 'Puan miktarı 0\'dan büyük olmalıdır!'})
+        elif prize_type == 'product':
+            product_id = request.form.get('product_id')
+            if not product_id:
+                return jsonify({'success': False, 'error': 'Ürün seçimi zorunludur!'})
+            product_id = int(product_id)
+        else:
+            return jsonify({'success': False, 'error': 'Geçersiz ödül tipi!'})
+
+        prize = WheelPrize(
+            name=name,
+            prize_type=prize_type,
+            points_amount=points_amount,
+            product_id=product_id,
+            color=color,
+            weight=weight,
+            is_active=is_active
+        )
+        db.session.add(prize)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Çark ödülü başarıyla oluşturuldu.',
+            'prize': prize.to_dict()
+        })
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/admin/wheel/get_prizes', methods=['GET'])
+@login_required
+def get_wheel_prizes():
+    """Çark ödüllerini JSON olarak döndür"""
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'error': 'Yetkisiz erişim'}), 403
+
+    try:
+        prizes = WheelPrize.query.order_by(WheelPrize.id.desc()).all()
+        return jsonify({
+            'success': True,
+            'prizes': [p.to_dict() for p in prizes]
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/admin/wheel/prize/<int:prize_id>/toggle', methods=['POST'])
+@login_required
+def toggle_wheel_prize(prize_id):
+    """Çark ödülü aktif/pasif durumunu değiştir"""
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'error': 'Yetkisiz erişim'}), 403
+
+    try:
+        prize = WheelPrize.query.get_or_404(prize_id)
+        prize.is_active = not prize.is_active
+        db.session.commit()
+
+        status = "aktif" if prize.is_active else "pasif"
+        return jsonify({
+            'success': True,
+            'message': f'Ödül {status} duruma getirildi.',
+            'is_active': prize.is_active
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/admin/wheel/prize/<int:prize_id>/edit', methods=['PUT'])
+@login_required
+def edit_wheel_prize(prize_id):
+    """Çark ödülünü düzenle"""
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'error': 'Yetkisiz erişim'}), 403
+
+    try:
+        prize = WheelPrize.query.get_or_404(prize_id)
+        data = request.get_json()
+
+        prize.name = data.get('name', prize.name)
+        prize.prize_type = data.get('prize_type', prize.prize_type)
+        prize.color = data.get('color', prize.color)
+        prize.weight = int(data.get('weight', prize.weight))
+        prize.is_active = data.get('is_active', prize.is_active)
+
+        if prize.prize_type == 'points':
+            prize.points_amount = int(data.get('points_amount', prize.points_amount or 0))
+            prize.product_id = None
+        elif prize.prize_type == 'product':
+            prize.product_id = int(data.get('product_id')) if data.get('product_id') else prize.product_id
+            prize.points_amount = None
+
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Çark ödülü başarıyla güncellendi.',
+            'prize': prize.to_dict()
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/admin/wheel/prize/<int:prize_id>/delete', methods=['DELETE'])
+@login_required
+def delete_wheel_prize(prize_id):
+    """Çark ödülünü sil"""
+    if not current_user.is_admin:
+        return jsonify({'success': False, 'error': 'Yetkisiz erişim'}), 403
+
+    try:
+        prize = WheelPrize.query.get_or_404(prize_id)
+        db.session.delete(prize)
+        db.session.commit()
+
+        return jsonify({
+            'success': True,
+            'message': 'Çark ödülü başarıyla silindi.'
+        })
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500

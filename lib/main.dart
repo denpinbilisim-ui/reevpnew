@@ -22,6 +22,7 @@ import 'screens/profile_screen.dart';
 import 'screens/product_approval_screen.dart';
 import 'screens/branches_screen.dart';
 import 'screens/survey_screen.dart';
+import 'screens/wheel_screen.dart';
 import 'utils/app_theme.dart';
 import 'utils/app_constants.dart';
 
@@ -76,6 +77,7 @@ class ReevPointsApp extends StatelessWidget {
           '/profile': (context) => const ProfileScreen(),
           '/product-approval': (context) => const ProductApprovalScreen(),
           '/branches': (context) => const BranchesScreen(),
+          '/wheel': (context) => const WheelScreen(),
         },
         onGenerateRoute: (settings) {
           if (settings.name == '/reset-password') {

@@ -362,7 +362,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: SafeArea(
           child: _isLoading
               ? const Center(
-                  child: CircularProgressIndicator(color: Colors.white))
+                  child: CircularProgressIndicator(color: AppTheme.primaryColor))
               : RefreshIndicator(
                   onRefresh: _loadDashboardData,
                   child: SingleChildScrollView(
@@ -375,19 +375,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Colors.white.withOpacity(0.15),
-                                Colors.white.withOpacity(0.05),
-                              ],
-                            ),
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
+                              color: AppTheme.cardBorder,
                               width: 1,
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.05),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
                           child: Row(
                             children: [
@@ -434,8 +434,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           .textTheme
                                           .bodyMedium
                                           ?.copyWith(
-                                            color:
-                                                Colors.white.withOpacity(0.8),
+                                            color: Colors.black54,
                                             fontWeight: FontWeight.w400,
                                           ),
                                     ),
@@ -448,7 +447,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                           .textTheme
                                           .titleLarge
                                           ?.copyWith(
-                                            color: Colors.white,
+                                            color: Colors.black87,
                                             fontWeight: FontWeight.bold,
                                           ),
                                     ),
@@ -460,7 +459,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 width: 45,
                                 height: 45,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
+                                  color: AppTheme.primaryColor.withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(22.5),
                                 ),
                                 child: IconButton(
@@ -468,7 +467,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       .pushNamed('/profile'),
                                   icon: const Icon(
                                     Icons.notifications_outlined,
-                                    color: Colors.white,
+                                    color: AppTheme.primaryColor,
                                     size: 22,
                                   ),
                                 ),
@@ -580,7 +579,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           'Hızlı İşlemler',
                           style:
                               Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    color: Colors.white,
+                                    color: Colors.black87,
                                     fontWeight: FontWeight.bold,
                                   ),
                         ),
@@ -925,6 +924,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Navigator.of(context).pushReplacementNamed('/redeem');
                 break;
               case 4:
+                Navigator.of(context).pushNamed('/wheel');
+                break;
+              case 5:
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => const BranchesScreen(),
@@ -949,6 +951,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             BottomNavigationBarItem(
               icon: Icon(Icons.redeem_rounded),
               label: 'Puan Kullan',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.casino_rounded),
+              label: 'Şans Çarkı',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.store_rounded),

@@ -165,12 +165,12 @@ class _SplashScreenState extends State<SplashScreen>
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 2,
-                  color: Colors.white,
+                  color: AppTheme.primaryColor,
                   shadows: [
                     Shadow(
                       offset: const Offset(0, 2),
                       blurRadius: 4,
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withOpacity(0.3),
                     ),
                   ],
                 ),
@@ -181,12 +181,12 @@ class _SplashScreenState extends State<SplashScreen>
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontSize: 18,
                   fontWeight: FontWeight.w400,
-                  color: Colors.white.withOpacity(0.9),
+                  color: AppTheme.secondaryColor,
                   shadows: [
                     Shadow(
                       offset: const Offset(0, 1),
                       blurRadius: 3,
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withOpacity(0.3),
                     ),
                   ],
                 ),
@@ -202,7 +202,7 @@ class _SplashScreenState extends State<SplashScreen>
           right: 0,
           child: const Center(
             child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
             ),
           ),
         ),

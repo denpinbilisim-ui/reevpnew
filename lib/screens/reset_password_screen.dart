@@ -172,7 +172,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         'E-posta adresinize gönderilen kodu girin\nve yeni şifrenizi belirleyin',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.black54,
                           fontWeight: FontWeight.w400,
                         ),
                       ),
@@ -182,13 +182,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: AppTheme.primaryColor.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           widget.email,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppTheme.primaryColor,
                             fontWeight: FontWeight.w500,
                           ),
                         ),

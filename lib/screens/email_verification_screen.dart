@@ -164,7 +164,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                         'E-posta adresinize gönderilen\ndoğrulama kodunu girin',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.black54,
                           fontWeight: FontWeight.w400,
                         ),
                       ),
@@ -174,13 +174,13 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: AppTheme.primaryColor.withOpacity(0.08),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           widget.email,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppTheme.primaryColor,
                             fontWeight: FontWeight.w500,
                           ),
                         ),

@@ -263,6 +263,55 @@ class ApiService {
     }
   }
 
+  // Wheel status
+  Future<Map<String, dynamic>> getWheelStatus({
+    required String userId,
+    required Map<String, String> headers,
+  }) async {
+    try {
+      final response = await get(
+        '${AppConstants.wheelStatusEndpoint}?user_id=$userId',
+        headers: headers,
+      );
+      return response;
+    } catch (e) {
+      throw Exception('Çark durumu alınamadı: $e');
+    }
+  }
+
+  // Wheel spin
+  Future<Map<String, dynamic>> spinWheel({
+    required String userId,
+    required Map<String, String> headers,
+  }) async {
+    try {
+      final response = await post(
+        AppConstants.wheelSpinEndpoint,
+        data: {'user_id': userId},
+        headers: headers,
+      );
+      return response;
+    } catch (e) {
+      throw Exception('Çark çevrilemedi: $e');
+    }
+  }
+
+  // Wheel history
+  Future<Map<String, dynamic>> getWheelHistory({
+    required String userId,
+    required Map<String, String> headers,
+  }) async {
+    try {
+      final response = await get(
+        '${AppConstants.wheelHistoryEndpoint}?user_id=$userId',
+        headers: headers,
+      );
+      return response;
+    } catch (e) {
+      throw Exception('Çark geçmişi alınamadı: $e');
+    }
+  }
+
   // Handle HTTP response
   Map<String, dynamic> _handleResponse(http.Response response) {
     try {

@@ -7,10 +7,11 @@ class AppTheme {
   static const Color secondaryColor =
       Color(0xFFD2691E); // --secondary-color: #D2691E
   static const Color accentColor = Color(0xFFF4A460); // --accent-color: #F4A460
-  static const Color bgStart = Color(0xFFA6DBB8); // --bg-start: #a6dbb8
-  static const Color bgEnd = Color(0xFF4D705C); // --bg-end: #4d705c
-  static const Color cardBg = Color(0xB3FFFFFF); // rgba(255, 255, 255, 0.7)
-  static const Color cardBorder = Color(0x80FFFFFF); // rgba(255, 255, 255, 0.5)
+  static const Color bgStart = Color(0xFFF8F9FA); // Sedefli beyaz başlangıç
+  static const Color bgMid = Color(0xFFF2F3F5); // Sedefli beyaz orta
+  static const Color bgEnd = Color(0xFFEDEEF0); // Sedefli beyaz bitiş
+  static const Color cardBg = Color(0xFFFFFFFF); // Tam beyaz kart
+  static const Color cardBorder = Color(0xFFE0E0E0); // Açık gri kart kenarı
 
   static ThemeData get lightTheme {
     return ThemeData(
@@ -30,10 +31,10 @@ class AppTheme {
         titleTextStyle: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          color: Colors.white,
+          color: Colors.black87,
           fontFamily: 'Segoe UI',
         ),
-        iconTheme: IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: Colors.black87),
       ),
 
       // Card theme
@@ -89,19 +90,19 @@ class AppTheme {
         headlineLarge: TextStyle(
           fontSize: 32,
           fontWeight: FontWeight.bold,
-          color: Colors.white,
+          color: Colors.black87,
           fontFamily: 'Segoe UI',
         ),
         headlineMedium: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
-          color: Colors.white,
+          color: Colors.black87,
           fontFamily: 'Segoe UI',
         ),
         titleLarge: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,
-          color: Colors.white,
+          color: Colors.black87,
           fontFamily: 'Segoe UI',
         ),
         bodyLarge: TextStyle(
@@ -118,13 +119,13 @@ class AppTheme {
     );
   }
 
-  // Gradient background decoration (web projesindeki gibi)
+  // Sedefli beyaz gradient background
   static BoxDecoration get backgroundDecoration {
     return const BoxDecoration(
       gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [bgStart, bgEnd],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [bgStart, bgMid, bgEnd],
       ),
     );
   }

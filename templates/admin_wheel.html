@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Çark Yönetimi - Admin Panel{% endblock %}
+
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5><i class="fas fa-dharmachakra"></i> Yeni Çark Ödülü</h5>
+                </div>
+                <div class="card-body">
+                    <form id="createPrizeForm">
+                        <div class="mb-3">
+                            <label class="form-label">Ödül Adı</label>
+                            <input type="text" class="form-control" name="name" placeholder="Örn: 50 Puan Kazandın!" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ödül Tipi</label>
+                            <select class="form-select" name="prize_type" id="prizeTypeSelect" onchange="togglePrizeTypeFields()">
+                                <option value="points">Oyun (Puan)</option>
+                                <option value="product">Ürün</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3" id="pointsField">
+                            <label class="form-label">Verilecek Puan</label>
+                            <input type="number" class="form-control" name="points_amount" min="1" value="10">
+                        </div>
+
+                        <div class="mb-3 d-none" id="productField">
+                            <label class="form-label">Ürün Seç</label>
+                            <select class="form-select" name="product_id">
+                                <option value="">-- Ürün seçin --</option>
+                                {% for product in products %}
+                                <option value="{{ product.id }}">{{ product.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Dilim Rengi</label>
+                                    <input type="color" class="form-control form-control-color w-100" name="color" value="#8B5E3C">
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Kazanma Ağırlığı</label>
+                                    <input type="number" class="form-control" name="weight" min="1" value="1">
+                                    <div class="form-text">Yüksek değer = daha sık çıkar</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_active" id="prizeIsActive" checked>
+                                <label class="form-check-label" for="prizeIsActive">Ödül Aktif</label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-plus"></i> Ödül Ekle
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5><i class="fas fa-list"></i> Çark Ödülleri</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Renk</th>
+                                    <th>Ad</th>
+                                    <th>Tip</th>
+                                    <th>Değer</th>
+                                    <th>Ağırlık</th>
+                                    <th>Durum</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for prize in prizes %}
+                                <tr>
+                                    <td><span style="display:inline-block;width:24px;height:24px;border-radius:50%;background:{{ prize.color }};border:1px solid #ccc;"></span></td>
+                                    <td>{{ prize.name }}</td>
+                                    <td>
+                                        {% if prize.prize_type == 'points' %}
+                                            <span class="badge bg-info">Oyun (Puan)</span>
+                                        {% else %}
+                                            <span class="badge bg-warning text-dark">Ürün</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if prize.prize_type == 'points' %}
+                                            {{ prize.points_amount }} puan
+                                        {% else %}
+                                            {{ prize.product.name if prize.product else '-' }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ prize.weight }}</td>
+                                    <td>
+                                        {% if prize.is_active %}
+                                            <span class="badge bg-success">Aktif</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Pasif</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-warning" onclick="togglePrize({{ prize.id }})" title="{% if prize.is_active %}Pasif Yap{% else %}Aktif Yap{% endif %}">
+                                                <i class="fas fa-toggle-{% if prize.is_active %}on{% else %}off{% endif %}"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger" onclick="deletePrize({{ prize.id }})" title="Sil">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if not prizes %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-dharmachakra fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">Henüz çark ödülü tanımlanmamış</h5>
+                        <p class="text-muted">Soldaki formdan yeni ödül ekleyebilirsiniz.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h5><i class="fas fa-history"></i> Son Çevirmeler</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Kullanıcı</th>
+                                    <th>Ödül</th>
+                                    <th>Tarih</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for spin in recent_spins %}
+                                <tr>
+                                    <td>{{ spin.user.name if spin.user else '-' }}</td>
+                                    <td>{{ spin.prize.name if spin.prize else '-' }}</td>
+                                    <td><small>{{ spin.spun_at.strftime('%d.%m.%Y %H:%M') if spin.spun_at else '-' }}</small></td>
+                                </tr>
+                                {% else %}
+                                <tr><td colspan="3" class="text-center text-muted">Henüz çevirme yapılmamış.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePrizeTypeFields() {
+    const type = document.getElementById('prizeTypeSelect').value;
+    document.getElementById('pointsField').classList.toggle('d-none', type !== 'points');
+    document.getElementById('productField').classList.toggle('d-none', type !== 'product');
+}
+
+document.getElementById('createPrizeForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    formData.set('is_active', document.getElementById('prizeIsActive').checked ? 'true' : 'false');
+
+    fetch('/admin/wheel/create_prize', {
+        method: 'POST',
+        credentials: 'same-origin',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Hata: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Create prize error:', error);
+        alert('Ödül oluşturulurken hata oluştu: ' + error.message);
+    });
+});
+
+function togglePrize(prizeId) {
+    if (confirm('Ödül durumunu değiştirmek istediğinizden emin misiniz?')) {
+        fetch(`/admin/wheel/prize/${prizeId}/toggle`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Hata: ' + data.error);
+            }
+        })
+        .catch(error => alert('İşlem sırasında hata oluştu: ' + error.message));
+    }
+}
+
+function deletePrize(prizeId) {
+    if (confirm('Bu ödülü silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) {
+        fetch(`/admin/wheel/prize/${prizeId}/delete`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Hata: ' + data.error);
+            }
+        })
+        .catch(error => alert('Silme işlemi sırasında hata oluştu: ' + error.message));
+    }
+}
+</script>
+{% endblock %}

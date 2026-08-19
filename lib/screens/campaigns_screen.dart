@@ -356,62 +356,71 @@ class _CampaignsScreenState extends State<CampaignsScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.all(16),
+              // Header with glass effect
+              Container(
+                margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppTheme.cardBorder, width: 1),
+                ),
                 child: Row(
                   children: [
                     IconButton(
                       onPressed: () => Navigator.of(context).pushReplacementNamed('/dashboard'),
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87, size: 22),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 4),
                     Expanded(
-                      child: Text(
-                        'Kampanyalar',
-                        style: Theme.of(context).textTheme.headlineMedium,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Kampanyalar',
+                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          Text(
+                            'Size özel fırsatlar ve ödüller',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Colors.black54,
+                                  fontSize: 12,
+                                ),
+                          ),
+                        ],
                       ),
                     ),
                     IconButton(
                       onPressed: () => Navigator.of(context).pushNamed('/profile'),
                       icon: const Icon(
-                        Icons.account_circle,
-                        color: Colors.white,
-                        size: 32,
+                        Icons.account_circle_outlined,
+                        color: Colors.black87,
+                        size: 30,
                       ),
                     ),
                   ],
                 ),
               ),
-              
+
               // Content
               Expanded(
                 child: _isLoading
-                    ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                    ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))
                     : RefreshIndicator(
                         onRefresh: _loadCampaigns,
+                        color: AppTheme.primaryColor,
                         child: _campaigns.isEmpty
-                            ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.campaign_outlined,
-                                      size: 64,
-                                      color: Colors.white.withOpacity(0.5),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      'Aktif kampanya bulunmuyor',
-                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                        color: Colors.white.withOpacity(0.7),
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                            ? ListView(
+                                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                                children: [
+                                  _buildEmptyState(),
+                                ],
                               )
                             : ListView.builder(
-                                padding: const EdgeInsets.all(16),
+                                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                                 itemCount: _campaigns.length,
                                 itemBuilder: (context, index) {
                                   final campaign = _campaigns[index];
@@ -428,112 +437,256 @@ class _CampaignsScreenState extends State<CampaignsScreen> {
     );
   }
 
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 60),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.05),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.black.withOpacity(0.1), width: 2),
+              ),
+              child: Icon(
+                Icons.campaign_outlined,
+                size: 48,
+                color: Colors.black.withOpacity(0.3),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Aktif kampanya bulunmuyor',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: Colors.black54,
+                    fontSize: 18,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Yeni fırsatlar için tekrar kontrol edin',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.black38,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildCampaignCard(Map<String, dynamic> campaign) {
+    final products = campaign['products'] as List<dynamic>? ?? [];
+    final hasImage = campaign['image_url'] != null;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      decoration: AppTheme.cardDecoration,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Campaign Image
-          if (campaign['image_url'] != null)
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              child: Image.network(
-                campaign['image_url'],
+      decoration: BoxDecoration(
+        color: AppTheme.cardBg,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.cardBorder, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Campaign Image with overlay badge
+            if (hasImage)
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    child: Image.network(
+                      campaign['image_url'],
+                      width: double.infinity,
+                      height: 180,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        width: double.infinity,
+                        height: 180,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              AppTheme.primaryColor.withOpacity(0.15),
+                              AppTheme.secondaryColor.withOpacity(0.1),
+                            ],
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.campaign,
+                          size: 56,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.local_offer, size: 12, color: Colors.white),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Kampanya',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.95),
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            else
+              Container(
                 width: double.infinity,
-                height: 200,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  width: double.infinity,
-                  height: 200,
-                  color: AppTheme.primaryColor.withOpacity(0.1),
-                  child: const Icon(
-                    Icons.campaign,
-                    size: 64,
-                    color: AppTheme.primaryColor,
+                height: 8,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
                   ),
                 ),
               ),
-            ),
-          
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Campaign Title
-                Text(
-                  campaign['title'] ?? '',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.black87,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                
-                const SizedBox(height: 8),
-                
-                // Campaign Description
-                if (campaign['description'] != null)
+
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Campaign Title
                   Text(
-                    campaign['description'],
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    campaign['title'] ?? '',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       color: Colors.black87,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
                     ),
                   ),
-                
-                const SizedBox(height: 16),
-                
-                // Campaign Details
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today,
-                      size: 16,
-                      color: Colors.black54,
-                    ),
-                    const SizedBox(width: 8),
+
+                  const SizedBox(height: 6),
+
+                  // Campaign Description
+                  if (campaign['description'] != null)
                     Text(
-                      '${campaign['start_date']} - ${campaign['end_date']}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      campaign['description'],
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: Colors.black54,
+                        fontSize: 13,
                       ),
+                    ),
+
+                  const SizedBox(height: 14),
+
+                  // Info chips
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _buildInfoChip(
+                        Icons.calendar_today_outlined,
+                        '${_formatDate(campaign['start_date'])} - ${_formatDate(campaign['end_date'])}',
+                      ),
+                      if (products.isNotEmpty)
+                        _buildInfoChip(
+                          Icons.inventory_2_outlined,
+                          '${products.length} \u00fcr\u00fcn',
+                        ),
+                    ],
+                  ),
+
+                  if (campaign['valid_branches'] != null && campaign['valid_branches'].isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
+                          size: 14,
+                          color: AppTheme.primaryColor.withOpacity(0.6),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            campaign['valid_branches'].join(', '),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.black54,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
-                ),
-                
-                const SizedBox(height: 8),
-                
-                if (campaign['valid_branches'] != null && campaign['valid_branches'].isNotEmpty)
+
+                  const SizedBox(height: 16),
+
+                  // Action Button
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 16,
-                        color: Colors.black54,
-                      ),
-                      const SizedBox(width: 8),
                       Expanded(
-                        child: Text(
-                          'Geçerli şubeler: ${campaign['valid_branches'].join(', ')}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.black54,
-                          ),
+                        child: CustomButton(
+                          text: 'QR Kod Olu\u015ftur',
+                          onPressed: () => _showProductSelectionDialog(campaign),
+                          icon: Icons.qr_code_2,
+                          height: 44,
                         ),
                       ),
                     ],
                   ),
-                
-                const SizedBox(height: 20),
-                
-                // Action Button
-                CustomButton(
-                  text: 'Kampanya QR Oluştur',
-                  onPressed: () => _showProductSelectionDialog(campaign),
-                  icon: Icons.qr_code,
-                ),
-              ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoChip(IconData icon, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: AppTheme.primaryColor.withOpacity(0.7)),
+          const SizedBox(width: 5),
+          Text(
+            text,
+            style: TextStyle(
+              color: AppTheme.primaryColor.withOpacity(0.8),
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -541,64 +694,98 @@ class _CampaignsScreenState extends State<CampaignsScreen> {
     );
   }
 
+  String _formatDate(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return '';
+    try {
+      final dt = DateTime.parse(dateStr);
+      return '${dt.day.toString().padLeft(2, '0')}.${dt.month.toString().padLeft(2, '0')}.${dt.year}';
+    } catch (_) {
+      return dateStr.length > 10 ? dateStr.substring(0, 10) : dateStr;
+    }
+  }
+
   Widget _buildBottomNavigationBar() {
     return Container(
       decoration: BoxDecoration(
-        color: AppTheme.cardBg,
-        border: Border(top: BorderSide(color: AppTheme.cardBorder)),
-      ),
-      child: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        selectedItemColor: AppTheme.primaryColor,
-        unselectedItemColor: Colors.black54,
-        currentIndex: 1,
-        onTap: (index) {
-          switch (index) {
-            case 0:
-              Navigator.of(context).pushReplacementNamed('/dashboard');
-              break;
-            case 1:
-              // Already on campaigns
-              break;
-            case 2:
-              _generateDashboardQR();
-              break;
-            case 3:
-              Navigator.of(context).pushReplacementNamed('/redeem');
-              break;
-            case 4:
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const BranchesScreen(),
-                ),
-              );
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Ana Sayfa',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.campaign),
-            label: 'Kampanyalar',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.qr_code),
-            label: 'QR Oluştur',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.redeem),
-            label: 'Puan Kullan',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.store),
-            label: 'Şubelerimiz',
+        color: Colors.white.withOpacity(0.95),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, -2),
           ),
         ],
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        child: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          selectedItemColor: AppTheme.primaryColor,
+          unselectedItemColor: Colors.black38,
+          selectedFontSize: 11,
+          unselectedFontSize: 11,
+          currentIndex: 1,
+          onTap: (index) {
+            switch (index) {
+              case 0:
+                Navigator.of(context).pushReplacementNamed('/dashboard');
+                break;
+              case 1:
+                break;
+              case 2:
+                _generateDashboardQR();
+                break;
+              case 3:
+                Navigator.of(context).pushReplacementNamed('/redeem');
+                break;
+              case 4:
+                Navigator.of(context).pushNamed('/wheel');
+                break;
+              case 5:
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const BranchesScreen(),
+                  ),
+                );
+                break;
+            }
+          },
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              activeIcon: Icon(Icons.home),
+              label: 'Ana Sayfa',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.campaign_outlined),
+              activeIcon: Icon(Icons.campaign),
+              label: 'Kampanyalar',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.qr_code_outlined),
+              activeIcon: Icon(Icons.qr_code),
+              label: 'QR Olu\u015ftur',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.redeem_outlined),
+              activeIcon: Icon(Icons.redeem),
+              label: 'Puan Kullan',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.casino_outlined),
+              activeIcon: Icon(Icons.casino),
+              label: '\u015eans \u00c7ark\u0131',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.store_outlined),
+              activeIcon: Icon(Icons.store),
+              label: '\u015eubeler',
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -345,7 +345,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     IconButton(
                       onPressed: () => Navigator.of(context).pushReplacementNamed('/dashboard'),
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      icon: const Icon(Icons.arrow_back, color: Colors.black87),
                     ),
                     const SizedBox(width: 8),
                     Text(
@@ -1263,6 +1263,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Navigator.of(context).pushReplacementNamed('/redeem');
               break;
             case 4:
+              Navigator.of(context).pushNamed('/wheel');
+              break;
+            case 5:
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => const BranchesScreen(),
@@ -1287,6 +1290,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.redeem),
             label: 'Puan Kullan',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.casino),
+            label: 'Şans Çarkı',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.store),

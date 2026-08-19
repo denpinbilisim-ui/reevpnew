@@ -211,7 +211,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
                           onPressed: () => Navigator.of(context).pop(),
                           icon: const Icon(
                             Icons.arrow_back,
-                            color: Colors.white,
+                            color: Colors.black87,
                           ),
                         ),
                         Expanded(
@@ -221,7 +221,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
                                 .textTheme
                                 .titleLarge
                                 ?.copyWith(
-                                  color: Colors.white,
+                                  color: Colors.black87,
                                   fontWeight: FontWeight.bold,
                                 ),
                             textAlign: TextAlign.center,
@@ -235,7 +235,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
                     Container(
                       height: 6,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.3),
+                        color: Colors.black.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(3),
                       ),
                       child: FractionallySizedBox(
@@ -243,7 +243,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
                         widthFactor: (_currentQuestionIndex + 1) / questions.length,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppTheme.primaryColor,
                             borderRadius: BorderRadius.circular(3),
                           ),
                         ),
@@ -253,7 +253,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
                     Text(
                       'Soru ${_currentQuestionIndex + 1} / ${questions.length}',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withOpacity(0.8),
+                            color: Colors.black54,
                           ),
                     ),
                   ],
@@ -287,8 +287,8 @@ class _SurveyScreenState extends State<SurveyScreen> {
                         child: CustomButton(
                           text: 'Önceki',
                           onPressed: _previousQuestion,
-                          backgroundColor: Colors.white.withOpacity(0.2),
-                          textColor: Colors.white,
+                          backgroundColor: Colors.black.withOpacity(0.08),
+                          textColor: Colors.black87,
                         ),
                       ),
                     if (_currentQuestionIndex > 0) const SizedBox(width: 16),

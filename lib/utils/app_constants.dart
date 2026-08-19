@@ -1,6 +1,6 @@
 class AppConstants {
   // API Base URL - Flask sunucunuzun adresi
- // static const String baseUrl = 'http://88.247.42.6:1519/'; // Geliştirme için
+  //static const String baseUrl = 'http://192.168.74.11:1519/'; // Geliştirme için
   static const String baseUrl = 'https://reevpoints.tr/';
   //static const String baseUrl = 'http://192.168.74.11:1519/'; // Production için
 
@@ -24,6 +24,9 @@ class AppConstants {
   static const String deleteAccountEndpoint = '/api/delete-account';
   static const String activeSurveysEndpoint = '/api/surveys/active';
   static const String submitSurveyEndpoint = '/api/surveys';
+  static const String wheelStatusEndpoint = '/api/wheel/status';
+  static const String wheelSpinEndpoint = '/api/wheel/spin';
+  static const String wheelHistoryEndpoint = '/api/wheel/history';
 
   // Storage Keys
   static const String tokenKey = 'auth_token';

@@ -66,6 +66,12 @@
         <a class="sidebar-link" data-section="reports" href="javascript:void(0)">
             <i class="fas fa-chart-bar"></i> Raporlar
         </a>
+        <a class="sidebar-link" href="{{ url_for('admin_wheel') }}">
+            <i class="fas fa-dharmachakra"></i> Çark Yönetimi
+        </a>
+        <a class="sidebar-link" href="{{ url_for('admin_surveys') }}">
+            <i class="fas fa-poll"></i> Anket Yönetimi
+        </a>
     </div>
     <div class="admin-content">
     <div class="row">
@@ -1255,7 +1261,7 @@
         if (!col.children.length) col.remove();
     });
 
-    document.querySelectorAll('.sidebar-link').forEach(function(link) {
+    document.querySelectorAll('.sidebar-link[data-section]').forEach(function(link) {
         link.addEventListener('click', function(e) {
             e.preventDefault();
             var target = this.getAttribute('data-section');

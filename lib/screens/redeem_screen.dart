@@ -502,7 +502,7 @@ class _RedeemScreenState extends State<RedeemScreen> {
                   children: [
                     IconButton(
                       onPressed: () => Navigator.of(context).pushReplacementNamed('/dashboard'),
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      icon: const Icon(Icons.arrow_back, color: Colors.black87),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -530,7 +530,7 @@ class _RedeemScreenState extends State<RedeemScreen> {
                       onPressed: () => Navigator.of(context).pushNamed('/profile'),
                       icon: const Icon(
                         Icons.account_circle,
-                        color: Colors.white,
+                        color: Colors.black87,
                         size: 32,
                       ),
                     ),
@@ -561,7 +561,7 @@ class _RedeemScreenState extends State<RedeemScreen> {
               // Content
               Expanded(
                 child: _isLoading
-                    ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                    ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))
                     : RefreshIndicator(
                         onRefresh: _loadRedeemData,
                         child: _filteredProducts.isEmpty
@@ -572,13 +572,13 @@ class _RedeemScreenState extends State<RedeemScreen> {
                                     Icon(
                                       Icons.shopping_cart,
                                       size: 64,
-                                      color: Colors.white.withOpacity(0.5),
+                                      color: Colors.black.withOpacity(0.3),
                                     ),
                                     const SizedBox(height: 16),
                                     Text(
                                       'Ürün bulunmuyor',
                                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                        color: Colors.white.withOpacity(0.7),
+                                        color: Colors.black54,
                                       ),
                                     ),
                                   ],
@@ -806,6 +806,9 @@ class _RedeemScreenState extends State<RedeemScreen> {
               // Already on redeem
               break;
             case 4:
+              Navigator.of(context).pushNamed('/wheel');
+              break;
+            case 5:
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => const BranchesScreen(),
@@ -830,6 +833,10 @@ class _RedeemScreenState extends State<RedeemScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.redeem),
             label: 'Puan Kullan',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.casino),
+            label: 'Şans Çarkı',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.store),

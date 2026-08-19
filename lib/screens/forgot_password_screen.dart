@@ -120,7 +120,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         'E-posta adresinizi girin\nŞifre sıfırlama kodu göndereceğiz',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.black54,
                           fontWeight: FontWeight.w400,
                         ),
                       ),
