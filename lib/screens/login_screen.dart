@@ -26,12 +26,30 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _rememberMe = false;
   String? _loginLogoUrl;
 
   @override
   void initState() {
     super.initState();
     _loadLoginLogo();
+    _loadRememberedCredentials();
+  }
+
+  Future<void> _loadRememberedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    final rememberMe = prefs.getBool(AppConstants.rememberMeKey) ?? false;
+    if (rememberMe) {
+      final savedEmail = prefs.getString(AppConstants.savedEmailKey) ?? '';
+      final savedPassword = prefs.getString(AppConstants.savedPasswordKey) ?? '';
+      if (mounted) {
+        setState(() {
+          _rememberMe = true;
+          _emailController.text = savedEmail;
+          _passwordController.text = savedPassword;
+        });
+      }
+    }
   }
 
   @override
@@ -73,6 +91,17 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (success && mounted) {
+        final prefs = await SharedPreferences.getInstance();
+        if (_rememberMe) {
+          await prefs.setBool(AppConstants.rememberMeKey, true);
+          await prefs.setString(AppConstants.savedEmailKey, _emailController.text.trim());
+          await prefs.setString(AppConstants.savedPasswordKey, _passwordController.text);
+        } else {
+          await prefs.setBool(AppConstants.rememberMeKey, false);
+          await prefs.remove(AppConstants.savedEmailKey);
+          await prefs.remove(AppConstants.savedPasswordKey);
+        }
+
         Navigator.of(context).pushReplacementNamed('/dashboard');
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -282,24 +311,60 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
 
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () => Navigator.of(context).pushNamed('/forgot-password'),
-                              style: TextButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              child: const Text(
-                                'Şifremi Unuttum',
-                                style: TextStyle(
-                                  color: Colors.black87,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() => _rememberMe = !_rememberMe);
+                                },
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: Checkbox(
+                                        value: _rememberMe,
+                                        onChanged: (value) {
+                                          setState(() => _rememberMe = value ?? false);
+                                        },
+                                        activeColor: Colors.black,
+                                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    const Text(
+                                      'Beni Hatırla',
+                                      style: TextStyle(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ),
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pushNamed('/forgot-password'),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  minimumSize: Size.zero,
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: const Text(
+                                  'Şifremi Unuttum',
+                                  style: TextStyle(
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
 
                           const SizedBox(height: 12),

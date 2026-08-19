@@ -30,6 +30,9 @@ class AppConstants {
   static const String userKey = 'user_data';
   static const String languageKey = 'selected_language';
   static const String favoriteProductKey = 'favorite_product';
+  static const String rememberMeKey = 'remember_me';
+  static const String savedEmailKey = 'saved_email';
+  static const String savedPasswordKey = 'saved_password';
 
   // App Info
   static const String appName = 'REEV POINTS';
