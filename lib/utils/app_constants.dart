@@ -1,7 +1,8 @@
 class AppConstants {
   // API Base URL - Flask sunucunuzun adresi
  // static const String baseUrl = 'http://88.247.42.6:1519/'; // Geliştirme için
-  static const String baseUrl = 'https://reevpoints.tr/'; // Production için
+  static const String baseUrl = 'https://reevpoints.tr/';
+  //static const String baseUrl = 'http://192.168.74.11:1519/'; // Production için
 
   // API Endpoints
   static const String loginEndpoint = '/api/login';

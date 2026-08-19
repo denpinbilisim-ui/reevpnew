@@ -3124,6 +3124,8 @@ def admin():
     current_splash = SiteSetting.query.filter_by(key='splash_image').first()
     current_app_icon = SiteSetting.query.filter_by(key='app_icon').first()
     current_login_logo = SiteSetting.query.filter_by(key='login_logo').first()
+    current_app_store_link = SiteSetting.query.filter_by(key='app_store_link').first()
+    current_play_store_link = SiteSetting.query.filter_by(key='play_store_link').first()
     
     return render_template('admin.html', 
         users=users, 
@@ -3137,11 +3139,35 @@ def admin():
         current_splash=current_splash,
         current_app_icon=current_app_icon,
         current_login_logo=current_login_logo,
+        current_app_store_link=current_app_store_link,
+        current_play_store_link=current_play_store_link,
         q=q,
         sort=sort,
         order=order,
         per_page=per_page
     )
+
+# Mağaza linkleri güncelleme endpoint'i
+@app.route('/admin/update_store_links', methods=['POST'])
+@login_required
+def update_store_links():
+    if not current_user.is_admin:
+        return jsonify({'error': 'Yetkisiz erişim'}), 403
+
+    data = request.get_json(silent=True) or request.form
+    app_store_link = (data.get('app_store_link') or '').strip()
+    play_store_link = (data.get('play_store_link') or '').strip()
+
+    for key, val in [('app_store_link', app_store_link), ('play_store_link', play_store_link)]:
+        setting = SiteSetting.query.filter_by(key=key).first()
+        if setting:
+            setting.value = val
+            setting.updated_at = get_turkey_time()
+        else:
+            db.session.add(SiteSetting(key=key, value=val))
+
+    db.session.commit()
+    return jsonify({'success': True, 'message': 'Mağaza linkleri güncellendi.'})
 
 # Admin - Kampanya Ürün Yönetimi
 @app.route('/admin/campaign/<int:campaign_id>/products', methods=['GET', 'POST'])
@@ -3428,7 +3454,8 @@ def report_data():
                     User.points,
                     db.func.max(CustomerQR.used_at).label('last_qr_scan'),
                     Branch.name.label('last_branch')
-                ).filter(User.is_admin == False)\
+                ).select_from(User)\
+                .filter(User.is_admin == False)\
                 .outerjoin(CustomerQR, CustomerQR.customer_id == User.id)\
                 .outerjoin(Branch, CustomerQR.used_by_branch_id == Branch.id)\
                 .group_by(User.id, Branch.name)\
@@ -3700,7 +3727,7 @@ def report_data():
         try:
             branches = Branch.query.all()
             for branch in branches:
-                points = db.session.query(db.func.sum(Transaction.points_earned)).filter_by(branch_id=branch.id).scalar() or 0
+                points = db.session.query(db.func.sum(CustomerQR.points_earned)).filter_by(used_by_branch_id=branch.id, is_used=True).scalar() or 0
                 data['branch_labels'].append(branch.name)
                 data['branch_values'].append(points)
             
@@ -3751,7 +3778,8 @@ def export_report():
                 User.points,
                 db.func.max(CustomerQR.used_at).label('last_qr_scan'),
                 Branch.name.label('last_branch')
-            ).filter(User.is_admin == False)\
+            ).select_from(User)\
+            .filter(User.is_admin == False)\
             .outerjoin(CustomerQR, CustomerQR.customer_id == User.id)\
             .outerjoin(Branch, CustomerQR.used_by_branch_id == Branch.id)\
             .group_by(User.id, Branch.name)\
@@ -3812,35 +3840,35 @@ def export_report():
         
         # Şube performansı verilerini al (limitsiz)
         try:
-            branches_data = db.session.query(
-                Branch.name,
-                Branch.address,
-                db.func.count(CustomerQR.id).label('qr_scans'),
-                db.func.sum(CustomerQR.points_earned).label('total_points_given'),
-                db.func.count(db.distinct(CustomerQR.customer_id)).label('active_customers'),
-                db.func.count(ProductRedemption.id).label('confirmed_products')
-            ).outerjoin(CustomerQR, CustomerQR.used_by_branch_id == Branch.id)\
-            .outerjoin(ProductRedemption, ProductRedemption.confirmed_by_branch_id == Branch.id)\
-            .group_by(Branch.id)\
-            .all()
-            
-            for row, b in enumerate(branches_data, 2):
-                ws3.cell(row=row, column=1, value=b.name)
-                ws3.cell(row=row, column=2, value=b.address)
-                ws3.cell(row=row, column=3, value=b.qr_scans or 0)
-                ws3.cell(row=row, column=4, value=b.total_points_given or 0)
-                ws3.cell(row=row, column=5, value=b.active_customers or 0)
-                ws3.cell(row=row, column=6, value=b.confirmed_products or 0)
+            branches = Branch.query.all()
+            for row_idx, branch in enumerate(branches, 2):
+                qr_scan_count = CustomerQR.query.filter_by(used_by_branch_id=branch.id, is_used=True).count()
+                total_points = db.session.query(db.func.sum(CustomerQR.points_earned)).filter_by(
+                    used_by_branch_id=branch.id, is_used=True
+                ).scalar() or 0
+                active_customers = db.session.query(CustomerQR.customer_id).filter_by(
+                    used_by_branch_id=branch.id, is_used=True
+                ).distinct().count()
+                confirmed_products = ProductRedemption.query.filter_by(
+                    confirmed_by_branch_id=branch.id, is_confirmed=True
+                ).count()
+                
+                ws3.cell(row=row_idx, column=1, value=branch.name)
+                ws3.cell(row=row_idx, column=2, value=branch.address)
+                ws3.cell(row=row_idx, column=3, value=qr_scan_count)
+                ws3.cell(row=row_idx, column=4, value=total_points)
+                ws3.cell(row=row_idx, column=5, value=active_customers)
+                ws3.cell(row=row_idx, column=6, value=confirmed_products)
                 
                 # Performans hesapla
-                total_activity = (b.qr_scans or 0) + (b.confirmed_products or 0)
+                total_activity = qr_scan_count + confirmed_products
                 if total_activity > 50:
                     performance = "Yüksek"
                 elif total_activity > 20:
                     performance = "Orta"
                 else:
                     performance = "Düşük"
-                ws3.cell(row=row, column=7, value=performance)
+                ws3.cell(row=row_idx, column=7, value=performance)
         except Exception as e:
             print(f"Branches export error: {e}")
         
@@ -3855,26 +3883,18 @@ def export_report():
         
         # Müşteri analizi verilerini al (limitsiz)
         try:
-            customers_data = db.session.query(
-                User.name,
-                User.email,
-                User.points,
-                db.func.count(CustomerQR.id).label('qr_count'),
-                db.func.count(ProductRedemption.id).label('redemption_count'),
-                db.func.max(CustomerQR.used_at).label('last_activity')
-            ).filter(User.is_admin == False)\
-            .outerjoin(CustomerQR, CustomerQR.customer_id == User.id)\
-            .outerjoin(ProductRedemption, ProductRedemption.user_id == User.id)\
-            .group_by(User.id)\
-            .all()
-            
-            for row, c in enumerate(customers_data, 2):
-                ws4.cell(row=row, column=1, value=c.name)
-                ws4.cell(row=row, column=2, value=c.email)
-                ws4.cell(row=row, column=3, value=c.points)
-                ws4.cell(row=row, column=4, value=c.qr_count or 0)
-                ws4.cell(row=row, column=5, value=c.redemption_count or 0)
-                ws4.cell(row=row, column=6, value=c.last_activity.strftime('%d.%m.%Y') if c.last_activity else 'Hiç aktivite yok')
+            users = User.query.filter(User.is_admin == False).all()
+            for row_idx, user in enumerate(users, 2):
+                qr_count = CustomerQR.query.filter_by(customer_id=user.id).count()
+                redemption_count = ProductRedemption.query.filter_by(user_id=user.id).count()
+                last_qr = db.session.query(db.func.max(CustomerQR.used_at)).filter_by(customer_id=user.id).scalar()
+                
+                ws4.cell(row=row_idx, column=1, value=user.name)
+                ws4.cell(row=row_idx, column=2, value=user.email)
+                ws4.cell(row=row_idx, column=3, value=user.points)
+                ws4.cell(row=row_idx, column=4, value=qr_count)
+                ws4.cell(row=row_idx, column=5, value=redemption_count)
+                ws4.cell(row=row_idx, column=6, value=last_qr.strftime('%d.%m.%Y') if last_qr else 'Hiç aktivite yok')
         except Exception as e:
             print(f"Customers export error: {e}")
         
@@ -3894,18 +3914,18 @@ def export_report():
                 Transaction.amount,
                 Transaction.transaction_type,
                 Transaction.description,
-                Transaction.updated_at,
+                Transaction.timestamp,
                 Transaction.points_earned,
                 User.name.label('user_name')
             ).join(User, Transaction.user_id == User.id)\
-            .order_by(Transaction.updated_at.desc())\
+            .order_by(Transaction.timestamp.desc())\
             .all()
             
             for row, t in enumerate(transactions, 2):
                 ws5.cell(row=row, column=1, value=t.user_name)
                 ws5.cell(row=row, column=2, value=t.transaction_type)
                 ws5.cell(row=row, column=3, value=f"{t.amount:.2f} ₺")
-                ws5.cell(row=row, column=4, value=t.updated_at.strftime('%d.%m.%Y %H:%M'))
+                ws5.cell(row=row, column=4, value=t.timestamp.strftime('%d.%m.%Y %H:%M'))
                 ws5.cell(row=row, column=5, value=t.description or '')
                 ws5.cell(row=row, column=6, value=t.points_earned or 0)
                 ws5.cell(row=row, column=7, value='Bilinmiyor')
@@ -8017,8 +8037,13 @@ def delete_survey(survey_id):
 
 @app.route('/download')
 def download_page():
-    """Android APK indirme sayfası"""
-    return render_template('download.html')
+    """Mobil uygulama indirme sayfası"""
+    app_store_link = SiteSetting.query.filter_by(key='app_store_link').first()
+    play_store_link = SiteSetting.query.filter_by(key='play_store_link').first()
+    return render_template('download.html',
+        app_store_link=app_store_link.value if app_store_link else '',
+        play_store_link=play_store_link.value if play_store_link else ''
+    )
 
 @app.route('/download-apk')
 def download_apk():

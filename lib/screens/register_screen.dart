@@ -201,15 +201,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         
                         CustomTextField(
                           controller: _phoneController,
-                          label: 'Telefon',
+                          label: 'Telefon (Opsiyonel)',
                           prefixIcon: Icons.phone_outlined,
                           keyboardType: TextInputType.phone,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Telefon numarası gerekli';
-                            }
-                            return null;
-                          },
                         ),
                         
                         const SizedBox(height: 20),
