@@ -3,7 +3,7 @@ description: REEV Coffee
 
 publish_to: 'none'
 
-version: 1.0.0+5
+version: 1.1.1+7
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -15,9 +15,6 @@ dependencies:
   # UI & Design
   cupertino_icons: ^1.0.2
   google_fonts: ^6.1.0
-  
-  # QR Code
-  mobile_scanner: ^3.5.6
   
   # Media
   video_player: ^2.9.2
